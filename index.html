@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Troca do Fusion — Painel de decisão</title>
+<style>
+:root{
+  color-scheme:light;
+  --bg:#f9f9f7; --surface:#fcfcfb; --surface2:#f3f2ee; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4; --s6:#008300;
+  --gray:#a9a79f; --gray2:#d3d1c8;
+  --good:#006300; --warn:#8a5a00; --bad:#b32d2d; --goodbg:#e6f3e6; --warnbg:#fdf1d6; --badbg:#fbe4e4;
+  --heat-lo:#eef4fc; --heat-hi:#6da7ec;
+  --accent:#2a78d6; --accent-ink:#ffffff;
+}
+@media (prefers-color-scheme:dark){
+  :root:where(:not([data-theme="light"])){
+    color-scheme:dark;
+    --bg:#0d0d0d; --surface:#1a1a19; --surface2:#242422; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+    --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+    --gray:#6b6a64; --gray2:#3a3a37;
+    --good:#0ca30c; --warn:#fab219; --bad:#ec7070; --goodbg:#12301a; --warnbg:#3a2e0d; --badbg:#3a1616;
+    --heat-lo:#1d2b3f; --heat-hi:#2a78d6; --accent:#3987e5;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0d0d0d; --surface:#1a1a19; --surface2:#242422; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181; --s6:#008300;
+  --gray:#6b6a64; --gray2:#3a3a37;
+  --good:#0ca30c; --warn:#fab219; --bad:#ec7070; --goodbg:#12301a; --warnbg:#3a2e0d; --badbg:#3a1616;
+  --heat-lo:#1d2b3f; --heat-hi:#2a78d6; --accent:#3987e5;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding-inline:clamp(16px,3vw,32px)}
+h1,h2,h3,h4{margin:0;font-weight:650;letter-spacing:-.01em}
+h2{font-size:18px} h3{font-size:15px} h4{font-size:13px;color:var(--ink2);font-weight:600}
+p{margin:0}
+.wrap{max-width:1280px;margin:0 auto;padding-block:20px 60px}
+header.top{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:flex-end;justify-content:space-between;padding-bottom:14px}
+header.top h1{font-size:24px}
+header.top .sub{color:var(--ink2);margin-top:4px;max-width:70ch}
+.hctl{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.hctl label{display:flex;flex-direction:column;font-size:11px;color:var(--muted);gap:2px;text-transform:uppercase;letter-spacing:.04em}
+select,input[type=number],input[type=text]{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:6px 8px}
+select{min-height:34px}
+button{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--axis);border-radius:8px;padding:6px 12px;cursor:pointer}
+button:hover{background:var(--surface2)}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:transparent}
+button.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+nav.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:1px solid var(--axis);position:sticky;top:0;background:var(--bg);z-index:5;padding-top:6px;margin-inline:calc(-1 * clamp(16px,3vw,32px));padding-inline:clamp(16px,3vw,32px)}
+nav.tabs button{border:0;border-bottom:3px solid transparent;border-radius:0;background:none;padding:10px 14px;color:var(--ink2);white-space:nowrap}
+nav.tabs button.on{color:var(--ink);border-bottom-color:var(--accent);font-weight:650;background:none}
+.tab{display:none;padding-top:20px}.tab.on{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px}
+.card + .card, .grid > .card{margin:0}
+.grid{display:grid;gap:16px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,460px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.gk{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.stack{display:flex;flex-direction:column;gap:16px}
+.hd{display:flex;flex-wrap:wrap;gap:6px 12px;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+.hd p{color:var(--ink2);font-size:13px;max-width:75ch}
+.kpi .lab{font-size:12px;color:var(--ink2)}
+.kpi .val{font-size:30px;font-weight:650;letter-spacing:-.02em;margin:2px 0}
+.kpi .sm{font-size:12px;color:var(--muted)}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11.5px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.tag.foco{background:var(--goodbg);color:var(--good)}
+.tag.radar{background:var(--warnbg);color:var(--warn)}
+.tag.desc{background:var(--surface2);color:var(--ink2);border-color:var(--axis)}
+.tag.fora{background:var(--badbg);color:var(--bad)}
+.tag.q{background:var(--warnbg);color:var(--warn)}
+table{border-collapse:collapse;width:100%}
+th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--grid);vertical-align:middle}
+th{font-size:11.5px;color:var(--ink2);font-weight:600;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.dim td{opacity:.5}
+.scroll{overflow-x:auto}
+.carlink{cursor:pointer;font-weight:600;text-decoration:underline;text-decoration-color:var(--axis);text-underline-offset:3px;background:none;border:0;padding:0;color:var(--ink);text-align:left}
+.carlink:hover{text-decoration-color:var(--ink)}
+.bar{height:10px;border-radius:0 4px 4px 0;background:var(--gray);min-width:2px}
+.bar.lead{background:var(--s1)}
+.barrow{display:grid;grid-template-columns:minmax(110px,170px) 1fr auto;gap:10px;align-items:center;padding:5px 0}
+.barrow .track{display:flex;gap:2px;height:22px;align-items:stretch}
+.barrow .seg{border-radius:0;min-width:1px}
+.barrow .seg:last-child{border-radius:0 4px 4px 0}
+.barrow .v{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;min-width:92px}
+.barrow .nm{font-size:13px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12px;color:var(--ink2);margin:0 0 8px}
+.legend i{display:inline-block;width:12px;height:8px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.note{font-size:12.5px;color:var(--ink2)}
+.callout{border-left:3px solid var(--accent);background:var(--surface2);padding:10px 14px;border-radius:0 10px 10px 0;font-size:13.5px}
+.callout.warn{border-left-color:var(--s4)}
+.finds{display:grid;gap:10px}
+.find{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+.find .ic{width:26px;height:26px;border-radius:99px;background:var(--surface2);display:grid;place-items:center;font-weight:700;font-size:13px;border:1px solid var(--axis)}
+.find>div>b{display:block;margin-bottom:1px}
+.find .t{color:var(--ink2);font-size:13.5px}
+.sl{display:grid;grid-template-columns:minmax(120px,190px) 1fr 76px;gap:10px;align-items:center;padding:4px 0}
+.sl label{font-size:13px}
+.sl .o{white-space:nowrap;font-variant-numeric:tabular-nums;font-weight:600;text-align:right}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--axis);border-radius:99px;padding:5px 12px;cursor:pointer;background:var(--surface);user-select:none;font-size:13px}
+.chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.chip input{display:none}
+.heat td{padding:3px}
+.heat input{width:54px;text-align:center;border:0;border-radius:6px;padding:6px 2px;font-variant-numeric:tabular-nums;font-weight:600;color:var(--ink);background:var(--surface2)}
+.heat td.c{text-align:center}
+.heat th{font-size:11px;white-space:normal;text-align:center;vertical-align:bottom;min-width:64px}
+.heat th.l{text-align:left}
+.heat .auto{font-style:italic}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--surface);color:var(--ink);border:1px solid var(--axis);border-radius:10px;padding:8px 10px;font-size:12.5px;box-shadow:0 6px 24px rgba(0,0,0,.18);max-width:300px;display:none}
+.tip b{font-weight:650}
+.tip .m{color:var(--ink2)}
+svg text{font-family:inherit;fill:var(--ink2);font-size:11.5px}
+svg .lab{fill:var(--ink);font-weight:600}
+dialog{border:1px solid var(--axis);border-radius:16px;background:var(--surface);color:var(--ink);padding:0;width:min(920px,calc(100vw - 24px));max-height:calc(100vh - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+dialog .dh{position:sticky;top:0;background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--grid);display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+dialog .db{padding:16px 20px 24px;display:flex;flex-direction:column;gap:16px}
+ul.pc{margin:6px 0 0;padding-left:18px;color:var(--ink2)}
+ul.pc li{margin:2px 0}
+.pro li::marker{color:var(--good);content:"＋ "} .con li::marker{color:var(--bad);content:"－ "}
+.cellyes{color:var(--good);font-weight:700}.cellno{color:var(--bad);font-weight:700}.cellq{color:var(--warn);font-weight:700}
+.best{background:var(--goodbg);font-weight:650}
+td.grp{background:var(--surface2);font-weight:650;color:var(--ink2);font-size:12px;text-transform:uppercase;letter-spacing:.04em}
+.sticky1 th:first-child,.sticky1 td:first-child{position:sticky;left:0;background:var(--surface);z-index:1}
+.todo{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--grid)}
+.todo input{margin-top:3px;accent-color:var(--accent)}
+.todo.done span{text-decoration:line-through;color:var(--muted)}
+.eff{font-size:12px;color:var(--muted)}
+footer{margin-top:28px;color:var(--muted);font-size:12px}
+@media (max-width:640px){
+  .barrow{grid-template-columns:1fr auto}.barrow .track{grid-column:1/-1;order:3}
+  .sl{grid-template-columns:1fr 56px}.sl input{grid-column:1/-1}
+  .kpi .val{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div>
+    <h1>Troca do Fusion — painel de decisão</h1>
+    <p class="sub">9 carros, 1 família, 1 rampa íngreme em Simonésia. Tudo recalcula ao mexer nas premissas — clique em qualquer nome de carro para ver o dossiê.</p>
+  </div>
+  <div class="hctl">
+    <label>Horizonte de posse<select data-g="horizonte"><option value="3">3 anos</option><option value="4">4 anos</option><option value="5">5 anos</option><option value="6">6 anos</option><option value="7">7 anos</option><option value="8">8 anos</option></select></label>
+    <label>Perspectiva<select id="presetSel"></select></label>
+    <label>Tema<select id="themeSel"><option value="auto">Automático</option><option value="light">Claro</option><option value="dark">Escuro</option></select></label>
+  </div>
+</header>
+<nav class="tabs" id="tabs"></nav>
+
+<!-- ============ VISÃO GERAL ============ -->
+<section class="tab" id="tab-visao">
+  <div class="stack">
+    <div class="card" data-r="verdict"></div>
+    <div class="grid gk" data-r="kpis"></div>
+    <div class="grid g2">
+      <div class="card"><div class="hd"><h2>Custo × qualidade</h2><p>Custo total de comprar, rodar e revender no horizonte escolhido, em valor presente (eixo X, menor é melhor) contra a nota de qualidade sem o custo (eixo Y, maior é melhor). A linha liga os carros que ninguém supera nos dois eixos.</p></div><div data-r="scatter"></div></div>
+      <div class="card"><div class="hd"><h2>Ranking</h2><label class="note">Ordenar por <select id="sortSel"><option value="overall">Nota geral</option><option value="hold">Menor custo</option><option value="Q">Qualidade</option><option value="vfm">Custo-benefício</option></select></label></div><div class="scroll" data-r="ranking"></div></div>
+    </div>
+    <div class="card"><div class="hd"><h2>O que os arquivos revelam</h2><p>Cruzamento das anotações com as fichas técnicas — inclui contradições que valem uma checagem.</p></div><div class="finds" data-r="finds"></div></div>
+  </div>
+</section>
+
+<!-- ============ FINANCEIRO ============ -->
+<section class="tab" id="tab-fin">
+  <div class="stack">
+    <div class="grid g2">
+      <div class="card">
+        <div class="hd"><h2>Premissas financeiras</h2></div>
+        <div class="sl"><label>Selic</label><input type="range" data-g="selic" min="6" max="18" step=".25"><span class="o" data-bind="g.selic" data-fmt="pct2"></span></div>
+        <div class="sl"><label>Imposto de renda</label><input type="range" data-g="ir" min="0" max="22.5" step=".5"><span class="o" data-bind="g.ir" data-fmt="pct1"></span></div>
+        <div class="sl"><label>Gasolina (R$/l)</label><input type="range" data-g="gas" min="4.5" max="8" step=".05"><span class="o" data-bind="g.gas" data-fmt="brl2"></span></div>
+        <div class="sl"><label>Etanol (R$/l)</label><input type="range" data-g="etanol" min="3" max="6" step=".05"><span class="o" data-bind="g.etanol" data-fmt="brl2"></span></div>
+        <div class="sl"><label>Seguro (% do valor/ano)</label><input type="range" data-g="seguro" min="1.5" max="7" step=".1"><span class="o" data-bind="g.seguro" data-fmt="pct1"></span></div>
+        <div class="sl"><label>Revisões (R$/ano)</label><input type="range" data-g="manut" min="500" max="6000" step="100"><span class="o" data-bind="g.manut" data-fmt="brl0"></span></div>
+        <div class="sl"><label>Desvalorização (×)</label><input type="range" data-g="depMult" min=".5" max="1.6" step=".05"><span class="o" data-bind="g.depMult" data-fmt="x2"></span></div>
+      </div>
+      <div class="card">
+        <div class="hd"><h2>Como pagar</h2></div>
+        <div class="sl" style="grid-template-columns:minmax(120px,190px) 1fr"><label>Forma de pagamento</label><select data-g="pagto"><option value="auto">Melhor de cada carro (automático)</option><option value="avista">Sempre à vista</option><option value="parc">Sempre parcelado (quando existir)</option></select></div>
+        <div class="sl" style="grid-template-columns:minmax(120px,190px) 1fr"><label>Valor do Fusion na troca</label><select data-g="trocaModo"><option value="ind">Como cada loja ofereceu / assumido</option><option value="uni">Mesmo valor para todos (isola o preço)</option></select></div>
+        <div class="sl"><label>Valor único da troca</label><input type="range" data-g="trocaUni" min="45000" max="75000" step="1000"><span class="o" data-bind="g.trocaUni" data-fmt="brl0"></span></div>
+        <div class="sl" style="grid-template-columns:minmax(120px,190px) 1fr"><label>Comprar na cor branca</label><label class="chip" style="justify-self:start"><input type="checkbox" data-g="branco"><span>Aplicar −R$ 10 mil (Song Plus/Premium)</span></label></div>
+        <div class="callout" style="margin-top:10px" data-r="ratebox"></div>
+      </div>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="hd"><h2>Taxas escondidas do parcelamento</h2><p>“Sem juros” costuma vir com IOF e tarifas que a promoção não cobre. Só entram nos carros com parcelamento.</p></div>
+        <div class="sl" style="grid-template-columns:minmax(120px,190px) 1fr"><label>Cobrar IOF</label><label class="chip" style="justify-self:start"><input type="checkbox" data-g="iofOn"><span>0,38% + 0,0082%/dia (teto 365 dias) sobre cada parcela</span></label></div>
+        <div class="sl"><label>Tarifas + registro (R$)</label><input type="range" data-g="tarifas" min="0" max="5000" step="100"><span class="o" data-bind="g.tarifas" data-fmt="brl0"></span></div>
+        <p class="note">Estimativa: cadastro/avaliação do bem, registro do contrato e gravame no Detran. Não considerei seguro prestamista (opcional — recuse). Se for crédito direto da loja, sem financeira, zere os dois.</p>
+      </div>
+      <div class="card">
+        <div class="hd"><h2>Se eu tiver que esperar pelo carro</h2><p>Se a espera não passar do limite abaixo, o Fusion não recebe manutenção e esse custo é zero. Passando dele, entram revisão e freios por inteiro; os pneus só se a espera também passar do tempo que eles ainda duram. O custo aparece como “Espera” no custo total.</p></div>
+        <div class="sl"><label>Só faz manutenção se a espera passar de</label><input type="range" data-g="fusManutSem" min="0" max="26" step="1"><span class="o" data-bind="g.fusManutSem" data-fmt="sem"></span></div>
+        <div class="sl"><label>Revisão de 90 mil km</label><input type="range" data-g="fusRevisao" min="0" max="4000" step="100"><span class="o" data-bind="g.fusRevisao" data-fmt="brl0"></span></div>
+        <div class="sl"><label>Freios traseiros</label><input type="range" data-g="fusFreios" min="0" max="3000" step="100"><span class="o" data-bind="g.fusFreios" data-fmt="brl0"></span></div>
+        <div class="sl"><label>Pneus (jogo)</label><input type="range" data-g="fusPneus" min="0" max="10000" step="250"><span class="o" data-bind="g.fusPneus" data-fmt="brl0"></span></div>
+        <div class="sl"><label>Pneus duram mais (semanas)</label><input type="range" data-g="fusPneusSem" min="0" max="52" step="1"><span class="o" data-bind="g.fusPneusSem" data-fmt="sem"></span></div>
+        <div class="sl"><label>Fusion perde por mês</label><input type="range" data-g="fusDesv" min="0" max="3" step=".25"><span class="o" data-bind="g.fusDesv" data-fmt="pct2"></span></div>
+        <p class="note">Também entra a gasolina extra do Fusion e o seguro dele enquanto você espera. A espera de cada carro é editável na aba Dados.</p>
+      </div>
+    </div>
+    <div class="card"><div class="hd"><h2>Custo de cada carro no horizonte escolhido</h2><p>Dois números, ambos em valor presente (o dinheiro futuro descontado pelo que renderia aplicado hoje). <b>Só ter o carro</b> = aquisição (já descontado o Fusion) + IPVA. <b>Custo total</b> = só ter + seguro, revisões, pneus e combustível, menos o que você recebe na revenda ao fim do horizonte.</p></div><div data-r="tco"></div></div>
+    <div class="grid g2">
+      <div class="card"><div class="hd"><h2>À vista × parcelado sem juros</h2><p>Com Selic alta, parcela sem juros é dinheiro rendendo a seu favor — mas um desconto à vista pode valer mais.</p></div><div class="scroll" data-r="pay"></div></div>
+      <div class="card"><div class="hd"><h2>Quanto o carro vale na revenda</h2><p>Estimativa própria (editável na aba Dados) — é o número mais incerto de toda a análise.</p></div><div data-r="resale"></div></div>
+    </div>
+    <div class="grid g2">
+      <div class="card"><div class="hd"><h2>IPVA ano a ano</h2><p>Nominal, sobre o valor de mercado no início de cada ano. Carros híbridos flex abaixo de R$ 261 mil pagam alíquota reduzida — que sobe até 4% em 2030.</p></div><div class="scroll" data-r="ipva"></div></div>
+      <div class="card"><div class="hd"><h2>E se eu errar as premissas?</h2><p>Posição de cada carro (nota geral) trocando horizonte e desvalorização. Se um carro se mantém no topo em todas as colunas, a decisão é robusta.</p></div><div class="scroll" data-r="robust"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ PERSPECTIVAS ============ -->
+<section class="tab" id="tab-perf">
+  <div class="stack">
+    <div class="grid g2">
+      <div class="card">
+        <div class="hd"><h2>Pesos — o que importa para você</h2><p>Escolha uma perspectiva pronta ou ajuste os pesos. A nota geral é a média ponderada das notas 0–10.</p></div>
+        <div class="chips" id="presetChips" style="margin-bottom:12px"></div>
+        <div id="weightSliders"></div>
+        <div class="sl" style="margin-top:8px;border-top:1px solid var(--grid);padding-top:10px"><label>Custo: R$/mês por ponto perdido</label><input type="range" data-g="custoPP" min="100" max="800" step="25"><span class="o" data-bind="g.custoPP" data-fmt="brl0"></span></div>
+        <p class="note">Quanto menor, mais o custo pune quem é mais caro que o mais barato.</p>
+        <div class="sl"><label>Peso das anotações</label><input type="range" data-g="mixNotas" min="0" max="100" step="5"><span class="o" data-bind="g.mixNotas" data-fmt="pct0"></span></div>
+        <div class="sl"><label>Peso dos especialistas (NotebookLM)</label><input type="range" data-g="mixEsp" min="0" max="100" step="5"><span class="o" data-bind="g.mixEsp" data-fmt="pct0"></span></div>
+        <p class="note">A ficha recebe o que sobra (100% menos os dois pesos). Onde há mais de uma fonte com nota, a final é a média ponderada entre elas; onde só uma tem, vale ela. Especialistas: síntese de cerca de 30 vídeos, só para EX5, H6 e Song Premium, em conforto e acabamento, espaço, prazer ao dirigir, condução semiautônoma, praticidade e tecnologia. Os outros carros seguem só com anotações e ficha.</p>
+      </div>
+      <div class="stack">
+        <div class="card"><div class="hd"><h2>Requisitos eliminatórios</h2><p>Marque o que é inegociável — carros que não cumprem saem do páreo (ficam esmaecidos).</p></div><div class="chips" id="fltChips"></div>
+          <div class="sl" style="margin-top:10px"><label>Ângulo de transposição mínimo</label><input type="range" data-f="ang" min="0" max="17" step=".1"><span class="o" data-bind="f.ang" data-fmt="deg"></span></div>
+          <p class="note">Ângulo estimado com vão livre e entre-eixos. Suas referências (ângulo oficial de outros carros): 12,4° não entrou · 12,8° raspou · 14,7° entrou.</p></div>
+        <div class="card"><div class="hd"><h2>Nota geral nesta perspectiva</h2></div><div data-r="permRank"></div></div>
+      </div>
+    </div>
+    <div class="card"><div class="hd"><h2>Matriz de notas</h2><p>De onde vem cada nota. Células editáveis (0–10): discorda de uma nota? Mude — tudo recalcula. Passe o mouse em uma célula para ver a nota das suas anotações, a dos especialistas (vídeos no NotebookLM, só para os 3 finalistas), a minha avaliação pela ficha técnica e como se combinam (regra nos controles “Peso das anotações” e “Peso dos especialistas”). Custo, prazo de entrega, memória dos bancos, estepe e transposição de rampa são calculados e não editáveis (tem = 10, não tem = 0; rampa: abaixo de 13° = 0, acima de 15° = 10).</p></div><div class="scroll" data-r="matrix"></div><p style="margin-top:10px"><button id="resetScores">Restaurar notas originais</button></p></div>
+  </div>
+</section>
+
+<!-- ============ COMPARADOR ============ -->
+<section class="tab" id="tab-comp">
+  <div class="stack">
+    <div class="card"><div class="hd"><h2>Escolha quem comparar</h2></div><div class="chips" id="selChips"></div></div>
+    <div class="card"><div class="hd"><h2>Checklist do seu contexto</h2><p>Os itens que apareceram nas suas notas como diferenciais ou incômodos.</p></div><div class="scroll" data-r="check"></div></div>
+    <div class="card"><div class="hd"><h2>Ficha técnica lado a lado</h2><p>Em verde, o melhor de cada linha entre os selecionados.</p></div><div class="scroll sticky1" data-r="specs"></div></div>
+    <div class="card"><div class="hd"><h2>Perfil de notas</h2><p>Até 4 carros (os primeiros selecionados).</p></div><div data-r="radar"></div></div>
+  </div>
+</section>
+
+<!-- ============ NOSSA VIDA ============ -->
+<section class="tab" id="tab-vida">
+  <div class="stack">
+    <div class="grid g2">
+      <div class="card">
+        <div class="hd"><h2>Como o carro é usado</h2><p>Construído a partir das suas anotações; ajuste à realidade.</p></div>
+        <div class="sl"><label>Dias de escola/ano</label><input type="range" data-g="diasEscola" min="120" max="240" step="5"><span class="o" data-bind="g.diasEscola" data-fmt="int"></span></div>
+        <div class="sl"><label>Idas a Valinhos/ano</label><input type="range" data-g="valinhos" min="0" max="52" step="2"><span class="o" data-bind="g.valinhos" data-fmt="int"></span></div>
+        <div class="sl"><label>Viagens a MG/ano</label><input type="range" data-g="viagensMG" min="0" max="4" step=".5"><span class="o" data-bind="g.viagensMG" data-fmt="dec1"></span></div>
+        <div class="sl"><label>Outras viagens/ano</label><input type="range" data-g="outrasViagens" min="0" max="8" step=".5"><span class="o" data-bind="g.outrasViagens" data-fmt="dec1"></span></div>
+        <div class="sl"><label>Autonomia real ÷ oficial</label><input type="range" data-g="evFator" min=".5" max="1" step=".05"><span class="o" data-bind="g.evFator" data-fmt="x2"></span></div>
+        <div class="sl"><label>Carregamento esquecido</label><input type="range" data-g="semCarga" min="0" max="30" step="1"><span class="o" data-bind="g.semCarga" data-fmt="pct0"></span></div>
+      </div>
+      <div class="card"><div class="hd"><h2>Quilometragem anual</h2></div><div data-r="kmchart"></div></div>
+    </div>
+    <div class="card"><div class="hd"><h2>Energia: o combustível quase não pesa</h2><p>Recarga em casa custa zero (solar). Só as viagens longas queimam combustível — as filhas na escola, o mercado e Valinhos cabem na bateria. O Fusion está como referência.</p></div><div data-r="energy"></div></div>
+    <div class="grid g2">
+      <div class="card"><div class="hd"><h2>Transposição de rampa</h2><p>Ângulo de transposição estimado a partir do vão livre e do entre-eixos (2 × arctan(2·vão ÷ entre-eixos)). É uma estimativa geométrica, não o número oficial — serve para comparar os carros entre si.</p></div><div data-r="ramp"></div></div>
+      <div class="card"><div class="hd"><h2>Quem cabe na vida de vocês</h2><p>Tamanho, visibilidade e recursos que ajudam quem dirige menos.</p></div><div class="scroll" data-r="fit"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ NEGOCIAÇÃO ============ -->
+<section class="tab" id="tab-neg">
+  <div class="stack">
+    <div class="card"><div class="hd"><h2>Onde a negociação muda o jogo</h2><p>Para cada carro: quanto de desconto extra seria preciso para empatar com o líder da nota geral. Digite um desconto que o vendedor oferecer para ver o efeito — o valor de revenda não muda, só o que você paga.</p></div><div class="scroll" data-r="negtable"></div></div>
+    <div class="grid g2">
+      <div class="card"><div class="hd"><h2>Próximos passos</h2><p>Estado salvo neste navegador.</p></div><div id="todos"></div></div>
+      <div class="card"><div class="hd"><h2>Situação com cada vendedor</h2></div><div data-r="sellers"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ DADOS ============ -->
+<section class="tab" id="tab-dados">
+  <div class="stack">
+    <div class="card"><div class="hd"><h2>Dados de cada oferta</h2><p>Valores extraídos das suas anotações. Edite qualquer célula. Depreciação: perda no 1º ano e a cada ano seguinte (premissas minhas — inclui o risco de a versão flex de BYD/Geely chegar e o ano-modelo do Premium ser 2025).</p></div><div class="scroll" id="dadosTable"></div>
+      <p style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap"><button id="resetCars">Restaurar dados originais</button><button id="resetAll">Restaurar tudo</button></p></div>
+    <div class="card"><div class="hd"><h2>Premissas do modelo</h2></div>
+      <div class="finds" id="assumptions"></div></div>
+  </div>
+</section>
+<footer>Painel gerado a partir das anotações e fichas técnicas na pasta. Valores de mercado, seguro, manutenção e desvalorização são estimativas — ajuste em Financeiro e Dados. Nada aqui é recomendação financeira.</footer>
+</div>
+<div class="tip" id="tip"></div>
+<dialog id="dlg"><div class="dh"><div id="dlgHead"></div><button id="dlgClose">Fechar ✕</button></div><div class="db" id="dlgBody"></div></dialog>
+
+<script>
+"use strict";
+/* =====================================================================
+   DADOS
+   ===================================================================== */
+const CRIT=[
+ {k:'custo',nome:'Custo total',auto:true,dica:['Custo mensal equivalente no horizonte escolhido', 'Depreciação/revenda', 'IPVA, seguro e revisões', 'Combustível e energia (etanol, gasolina, bateria)', 'Juros do financiamento ou custo do dinheiro', 'Custo da espera com o Fusion']},
+ {k:'dirigir',nome:'Prazer ao dirigir',dica:['Considera só o cenário com a bateria adequadamente carregada (o motor a combustão tem domínio próprio; o desempenho pode vir do motor elétrico)', 'Potência combinada e torque', 'Aceleração 0–100 km/h e retomadas (ultrapassagens em pista única)', 'Tração (dianteira vs. integral) e patinação ao acelerar, inclusive na chuva', 'Respostas do carro e dirigibilidade', 'Estabilidade', 'Suas impressões no test drive']},
+ {k:'motor',nome:'Motor a combustão',dica:['Potência e torque do motor a combustão (cv, Nm) e se é turbo ou aspirado', 'Capacidade de empurrar o carro e carregar a bateria ao mesmo tempo (viagens longas, serra, carga)', 'Consumo em modo híbrido sustentado (km/l), sem depender da bateria carregada', 'Tanque e autonomia total sem recarregar', 'Suas dúvidas sobre os motores aspirados (Song Pro e EX5)']},
+ {k:'autonomia',nome:'Autonomia no modo elétrico',auto:true,dica:['Autonomia elétrica oficial (Inmetro/PBEV) com a bateria cheia, em km','Escala: 40 km ou menos = 0; 100 km ou mais = 10; proporcional entre os dois','Quanto da rotina (escola, Valinhos) dá para fazer só na bateria, sem gastar combustível','Sem dado na ficha = nota neutra']},
+ {k:'semiauto',nome:'Condução semiautônoma',dica:['Piloto adaptativo (ACC) com Stop & Go', 'Manutenção e centralização de faixa (LKA/ELKA) e assistente de congestionamento (TJA)', 'Estacionamento assistido e ré assistida (park assist)', 'Sua impressão do pacote no test drive (você usa o ACC até na cidade; sua esposa não usa)']},
+ {k:'seguranca',nome:'Segurança geral',dica:['Frenagem autônoma de emergência (AEB), com pedestres e ciclistas', 'Alerta de ponto cego e de tráfego cruzado traseiro', 'Airbags (quantidade e tipo)', 'Radares e câmeras de apoio', 'Segurança ativa em situação de risco (ex.: tração integral e potência de reserva, na sua impressão)', 'Credibilidade dos sistemas de segurança da marca (ex.: herança Volvo)']},
+ {k:'rampa',nome:'Transposição de rampa',auto:true,dica:['Vão livre e entre-eixos', 'Ângulo de transposição estimado (abaixo de 13° = 0; acima de 15° = 10; proporcional entre os dois)', 'Suas referências: 12,4° não entrou · 12,8° raspou · 14,7° entrou']},
+ {k:'estepe',nome:'Estepe',auto:true,dica:['Tem estepe = 10; sem estepe (só kit de reparo) = 0', 'Relevante para as viagens longas por rodovias de pista única (MG)', 'Pneus de perfil baixo furam com facilidade em buracos']},
+ {k:'memoria',nome:'Memória dos bancos',auto:true,dica:['Memória de bancos e retrovisores vinculada à chave', 'Tem memória = 10; não tem = 0', 'Você (186 cm) e sua esposa (160 cm) recebem o carro na posição certa sem fazer nada']},
+ {k:'tech',nome:'Tecnologia e multimídia',dica:['Tamanho e qualidade das telas e do painel', 'Head-up display (HUD)', 'Sistema de som (nº de alto-falantes, marca)', 'CarPlay/Android Auto sem fio', 'Atualizações OTA']},
+ {k:'conforto',nome:'Conforto e acabamento',dica:['Bancos (elétricos, ventilados, aquecidos, couro)', 'Ar-condicionado (nº de zonas), purificador', 'Acabamento e materiais do interior', 'Teto panorâmico e luz ambiente']},
+ {k:'pratico',nome:'Praticidade (dia a dia)',dica:['Câmeras 360°/540° e assistência de manobra', 'Porta-malas elétrico/hands-free', 'Tamanho externo (garagem e manobra; ajuda a sua esposa)', 'V2L e pequenos incômodos do dia a dia (ex.: alarmes chatos)']},
+ {k:'espaco',nome:'Espaço interno',dica:['Entre-eixos (espaço para as pernas atrás) e largura', 'Espaço para a família toda (2 adultos e 2 crianças)', 'Conforto para adultos de 186 cm e 160 cm']},
+ {k:'mala',nome:'Porta-malas',dica:['Volume do porta-malas (litros); atenção: cada marca pode medir de um jeito', 'Capacidade com bancos rebatidos', 'Bagagem da família nas viagens longas']},
+ {k:'marca',nome:'Marca, garantia e revenda',dica:['Reputação e confiança na marca', 'Volume de vendas (facilidade de revenda)', 'Garantia do carro e da bateria']},
+ {k:'design',nome:'Design',dica:['Sua impressão do visual externo e interno (item puramente subjetivo, sem dado de ficha)']},
+ {k:'entrega',nome:'Prazo de entrega',auto:true,dica:['Semanas de espera até a entrega', 'Perde 0,7 ponto por semana; entrega imediata = 10']}
+];
+const PRESETS={
+ meu:{nome:'Minha perspectiva',w:{custo:40,dirigir:30,motor:20,autonomia:10,semiauto:30,seguranca:30,rampa:20,estepe:10,memoria:10,tech:30,conforto:20,pratico:20,espaco:20,mala:20,marca:20,design:30,entrega:10}},
+ balanceado:{nome:'Balanceado',w:{custo:30,dirigir:20,motor:20,autonomia:20,semiauto:20,seguranca:30,rampa:20,estepe:20,memoria:20,tech:20,conforto:20,pratico:20,espaco:20,mala:20,marca:20,design:15,entrega:15}},
+ racional:{nome:'Racional (custo primeiro)',w:{custo:40,dirigir:5,motor:15,autonomia:15,semiauto:5,seguranca:20,rampa:15,estepe:15,memoria:5,tech:5,conforto:5,pratico:10,espaco:10,mala:10,marca:25,design:5,entrega:5}},
+ familia:{nome:'Família e segurança',w:{custo:20,dirigir:10,motor:10,autonomia:20,semiauto:25,seguranca:40,rampa:20,estepe:20,memoria:30,tech:15,conforto:25,pratico:30,espaco:35,mala:30,marca:20,design:10,entrega:15}},
+ estrada:{nome:'Estradeiro (MG)',w:{custo:20,dirigir:35,motor:35,autonomia:5,semiauto:25,seguranca:30,rampa:20,estepe:40,memoria:10,tech:10,conforto:30,pratico:10,espaco:25,mala:30,marca:15,design:5,entrega:10}},
+ entusiasta:{nome:'Entusiasta (dirigir e tech)',w:{custo:20,dirigir:40,motor:10,autonomia:20,semiauto:30,seguranca:20,rampa:10,estepe:10,memoria:20,tech:40,conforto:20,pratico:20,espaco:10,mala:10,marca:10,design:30,entrega:10}}
+};
+const DEF_G={horizonte:7,selic:13.75,ir:15,gas:6.40,etanol:4.30,seguro:3,manut:2000,manutPos:1500,kmPneu:40000,depMult:1,
+ pagto:'auto',trocaModo:'ind',trocaUni:60000,branco:true,
+ diasEscola:200,valinhos:20,viagensMG:2,outrasViagens:3,kmMG:1800,kmOutra:500,evFator:.75,semCarga:5,custoPP:300,mixNotas:40,mixEsp:40,iofOn:true,tarifas:1500,fusRevisao:2500,fusFreios:1200,fusPneus:2500,fusPneusSem:8,fusManutSem:8,fusDesv:0};
+
+/* Base de cada carro: oferta (das anotações) + ficha técnica (dos .md) */
+const BASE=[
+{id:'h6',esperaSem:3,nome:'GWM Haval H6 PHEV19',curto:'H6 PHEV19',ano:'2026/27',disp:false,
+ testado:true,preco:250000,troca:60000,trocaAval:true,descBranco:0,descAvista:0,descExtra:10000,avista:true,parc:{ent:.6,n:18},flex:true,ipvaRed:true,startMonth:10,
+ d1:.20,d:.12,pneu:5200,kmlG:12.9,kmlE:8.9,kmlSrc:'Inmetro rodoviário (ficha)',ev:77,evSrc:'Inmetro',garAnos:6,garNota:'não informada na ficha (assumi 6 anos)',
+ s:{pot:326,torque:535,acel:7.4,vmax:180,tracao:'Dianteira',bat:19,ev:77,tanque:55,comp:4703,larg:1886,alt:1730,entre:2738,vao:201,peso:1915,mala:560,pneus:'235/55 R19',tela:'14,6"',cluster:'10,25"',hud:true,som:'9 alto-falantes · 216 W',memoria:false,estepe:false,bsd:true,zonas:'Dual zone',garantia:'n/d na ficha',ac:6.6,dc:33,v2l:null,airbags:'6',cam:'540° + chassi invisível',adas:'Nível 2+ · 5 câmeras + 2 radares',motor:'1.5 Turbo Flex + elétrico (DHT)',consumo:'Etanol 10,0 / Gasolina 14,7 km/l urbano (Inmetro)',ventil:'Bancos dianteiros ventilados',cpw:true},
+ pro:['Muito forte (326 cv): tranquiliza para as idas a MG','Maior vão livre entre todos (201 mm)','Park assist evoluído, volta de ré sozinho','Vende muito: segurança na revenda','GWM com presença consolidada'],
+ con:['Patinou fácil na chuva no test drive (controle de tração permissivo?)','Design "ok", não espetacular','Sem estepe (relevante para MG)','Sem memória dos bancos (confirmado com a loja)','Atendimento mais seco: só mandou condições por WhatsApp'],
+ pend:['Segundo test drive no molhado para reavaliar a tração','Confirmar por escrito que os R$ 10 mil valem também no parcelado (18× sem juros)','Confirmar a data de entrega (~20 dias) e o chassi/cor do carro de pronta entrega'],
+ seller:'30/09: recusou o Fusion a valor FIPE (R$ 82 mil) e ofereceu R$ 10 mil de desconto no preço, "o máximo que consegue"; a troca segue em R$ 60 mil. Tem carro de pronta entrega, mas a agenda de entregas leva ~20 dias. Financiamento: 60% de entrada + 18× sem juros. Antes atendimento seco (condições por WhatsApp).'},
+{id:'songpro',esperaSem:3,nome:'BYD Song Pro GS',curto:'Song Pro GS',ano:'2026/27',disp:false,
+ preco:200000,troca:55000,trocaAval:true,descBranco:0,descAvista:0,avista:true,parc:null,flex:true,ipvaRed:true,startMonth:10,
+ d1:.20,d:.12,pneu:4000,kmlG:14,kmlE:9.5,kmlSrc:'estimado (ficha só dá NEDC)',ev:72,evSrc:'PBEV',garAnos:6,garNota:'6 anos/200 mil km · bateria 8 anos',
+ s:{pot:219,torque:300,acel:8.8,vmax:180,tracao:'Dianteira',bat:18.3,ev:72,tanque:52,comp:4740,larg:1860,alt:1710,entre:2710,vao:160,peso:1760,mala:530,pneus:'225/60 R18',tela:'12,8"',cluster:'8,8"',hud:false,som:'8 alto-falantes',memoria:false,estepe:false,bsd:true,zonas:'2 zonas',garantia:'6 anos/200 mil km · bateria 8 anos/200 mil km',ac:6.6,dc:null,v2l:'Sim (VTOL)',airbags:'6',cam:'360°',adas:'ADAS 2 completo (ACC, AEB, BSD, RCTB…)',motor:'1.5 aspirado flex + elétrico',consumo:'NEDC gasolina 1.105 km · etanol 805 km',ventil:'Sem ventilação nos bancos',cpw:true},
+ pro:['Preço muito bom + IPVA reduzido','ADAS completo, teto panorâmico, porta-malas elétrico','BYD gigante e vende muito','Nova frente agradou'],
+ con:['Telas e cluster muito fracos','Mais fraco de todos (motor aspirado, 219 cv)','Sem memória de bancos','O mais baixo (160 mm): risco de raspar na rampa de acesso','"Grita compra racional"','Só à vista; dificilmente mexem no preço'],
+ pend:['Ângulo de transposição oficial (transposição de rampa)','Testar em estrada com carga: aspirado dá conta?'],
+ seller:'Só à vista; disseram que dificilmente conseguirão mexer no preço. Avaliação do Fusion: R$ 55 mil.'},
+{id:'songplus',esperaSem:3,nome:'BYD Song Plus DM-i',curto:'Song Plus',ano:'2026/27',disp:false,
+ preco:250000,troca:55000,trocaAval:true,descBranco:10000,descAvista:10000,avista:true,parc:{ent:.7,n:24},flex:false,ipvaRed:false,startMonth:10,
+ d1:.28,d:.12,pneu:5200,kmlG:14,kmlE:null,kmlSrc:'estimado (ficha só dá NEDC)',ev:99,evSrc:'PBEV',garAnos:6,garNota:'6 anos/200 mil km · bateria 8 anos',
+ s:{pot:240,torque:300,acel:8.1,vmax:180,tracao:'Dianteira',bat:26.6,ev:99,tanque:57,comp:4780,larg:1890,alt:1670,entre:2770,vao:180,peso:1970,mala:552,pneus:'235/50 R19',tela:'15,6" rotativa',cluster:'12,3"',hud:true,som:'10 alto-falantes Infinity',memoria:false,estepe:false,bsd:true,zonas:'2 zonas',garantia:'6 anos/200 mil km · bateria 8 anos/200 mil km',ac:6.6,dc:18,v2l:'Sim (VTOL)',airbags:'6',cam:'360°',adas:'ADAS 2 completo',motor:'1.5 Turbo (gasolina) + elétrico',consumo:'NEDC combinado até 1.150 km',ventil:'Bancos dianteiros ventilados',cpw:true},
+ pro:['Refinado; acabamento entre os melhores','Bateria grande (26,6 kWh · 99 km)','Competente na cidade e em trecho de estrada','Vendedor sinalizou abertura para negociar'],
+ con:['Sem memória de bancos','Design "meh"','Só gasolina: sem IPVA reduzido','Entrega menos que o H6 e custa mais','Versão flex da BYD deve chegar: risco de revenda'],
+ pend:['Testar negociação: pedir mais que os R$ 20 mil','Ângulo de transposição oficial (180 mm é limítrofe)'],
+ seller:'Deram a entender que há abertura para negociar. −R$ 10 mil à vista e −R$ 10 mil se for branco. 70% de entrada + 24× sem juros.'},
+{id:'songpremium',esperaSem:1,nome:'BYD Song Plus Premium AWD',curto:'Song Premium',ano:'2025/26',disp:false,testado:false,
+ preco:270000,troca:55000,trocaAval:true,descBranco:10000,descAvista:10000,avista:true,parc:{ent:.7,n:24},flex:false,ipvaRed:false,startMonth:10,
+ d1:.34,d:.12,pneu:5200,kmlG:12.5,kmlE:null,kmlSrc:'estimado (ficha só dá NEDC)',ev:87,evSrc:'PBEV',garAnos:6,garNota:'6 anos/200 mil km · bateria 8 anos',
+ s:{pot:324,torque:550,acel:5.2,vmax:180,tracao:'Integral (AWD)',bat:26.6,ev:87,tanque:57,comp:4780,larg:1890,alt:1670,entre:2770,vao:180,peso:2060,mala:552,pneus:'235/50 R19',tela:'15,6" rotativa',cluster:'12,3"',hud:true,som:'10 alto-falantes Infinity',memoria:false,estepe:false,bsd:true,zonas:'2 zonas',garantia:'6 anos/200 mil km · bateria 8 anos/200 mil km',ac:6.6,dc:18,v2l:'Sim (VTOL)',airbags:'6',cam:'360°',adas:'ADAS 2 completo',motor:'1.5 Turbo (gasolina) + 2 elétricos (AWD)',consumo:'NEDC combinado até 1.015 km',ventil:'Bancos ventilados e aquecidos',cpw:true},
+ pro:['Único com tração integral: some a patinada','324 cv, 0–100 em 5,2 s','Segurança extra pelo desempenho','Vendedor já avisou que tem "oferta melhor"','Potencial de "compra Fusion": carro do ano anterior com muita coisa'],
+ con:['Sem memória dos bancos mesmo sendo o topo','Interior só bege/caramelo (sujar com crianças)','R$ 20 mil a mais que o Plus, mesmo sendo 2025/26','Não testei','Só gasolina; ano-modelo mais velho pesa na revenda'],
+ pend:['Fazer test drive (único AWD)','Cobrar a "oferta melhor" com números','Ângulo de transposição oficial'],
+ seller:'Já avisaram que há oferta melhor, sem passar detalhes. −R$ 10 mil à vista e −R$ 10 mil se for branco. 70% de entrada + 24× sem juros.'},
+{id:'ex5',esperaSem:2,nome:'Geely EX5 EM-i Max',curto:'EX5 Max',ano:'2026/27',disp:false,
+ preco:210000,troca:61000,trocaAval:true,descBranco:0,descAvista:0,avista:true,parc:{ent:.6,n:24},flex:false,ipvaRed:false,startMonth:10,
+ d1:.26,d:.12,pneu:5200,kmlG:13.3,kmlE:null,kmlSrc:'Inmetro rodoviário (ficha)',ev:65,evSrc:'Inmetro',garAnos:6,garNota:'6 anos/150 mil km · bateria 8 anos',
+ s:{pot:262,torque:380,acel:7.8,vmax:175,tracao:'Dianteira',bat:18.4,ev:65,tanque:60,comp:4740,larg:1905,alt:1685,entre:2755,vao:172,peso:1782,mala:428,pneus:'235/50 R19',tela:'15,4"',cluster:'10,2"',hud:true,som:'16 alto-falantes Flyme',memoria:true,estepe:true,bsd:true,zonas:'1 zona (nas suas notas)',garantia:'6 anos/150 mil km · bateria 8 anos/150 mil km',ac:6.6,dc:30,v2l:'V2L e V2V',airbags:'6',cam:'540°',adas:'ADAS completo (ACC, ELKA, AEB, BSD, RCTB…)',motor:'1.5 aspirado (100 cv) + elétrico 218 cv',consumo:'Inmetro 14,6 urbano / 13,3 rodov. km/l',ventil:'Bancos dianteiros ventilados',cpw:true},
+ pro:['O melhor de dirigir: esperto sem ser descontrolado','Melhor multimídia: HUD 13,8", som 16 alto-falantes','Melhor pacote semiautônomo dos testados','Único com estepe (MG!)','Memória dos bancos','Vendedor subiu a troca de R$ 55 para R$ 61 mil na hora'],
+ con:['Menor porta-malas (428 L)','Alerta de velocidade que reinicia em 30 km/h (relatos no YouTube)','Motor a combustão fraco (100 cv): preocupa em serra','Vão livre 172 mm: dúvida na rampa','Geely nova no Brasil; versão flex já em produção: risco de revenda','Ar-condicionado de 1 zona'],
+ pend:['Ângulo de transposição oficial (172 mm)','Cobrar a nova oferta prometida (2 contatos, nada novo)','Saber preço/data da versão flex'],
+ seller:'Começou em R$ 55 mil pelo Fusion e subiu para R$ 61 mil na hora; deu a entender que melhoraria e entrou em contato 2 vezes, mas sem nada novo.'},
+{id:'ex5ultra',esperaSem:2,nome:'Geely EX5 EM-i Ultra',curto:'EX5 Ultra',ano:'2026/27',disp:false,testado:true,
+ preco:235000,troca:61000,trocaAval:true,descBranco:0,descAvista:0,avista:true,parc:{ent:.6,n:24},flex:false,ipvaRed:false,startMonth:10,
+ d1:.26,d:.12,pneu:5200,kmlG:13.1,kmlE:null,kmlSrc:'Inmetro rodoviário (ficha)',ev:112,evSrc:'Inmetro',garAnos:6,garNota:'6 anos/150 mil km · bateria 8 anos',
+ s:{pot:262,torque:380,acel:7.8,vmax:175,tracao:'Dianteira',bat:29.8,ev:112,tanque:60,comp:4740,larg:1905,alt:1685,entre:2755,vao:172,peso:1844,mala:428,pneus:'235/50 R19',tela:'15,4"',cluster:'10,2"',hud:true,som:'16 alto-falantes Flyme',memoria:true,estepe:true,bsd:true,zonas:'1 zona (nas suas notas)',garantia:'6 anos/150 mil km · bateria 8 anos/150 mil km',ac:6.6,dc:60,v2l:'V2L e V2V',airbags:'6',cam:'540°',adas:'ADAS completo (ACC, ELKA, AEB, BSD, RCTB…)',motor:'1.5 aspirado (100 cv) + elétrico 218 cv',consumo:'Inmetro 14,8 urbano / 13,1 rodov. km/l',ventil:'Bancos dianteiros ventilados',cpw:true},
+ pro:['Mesma tração/potência combinada da Max: 262 cv, 0–100 em 7,8 s (ficha)','Bateria bem maior (29,8 kWh): autonomia elétrica quase dobra (112 km Inmetro vs 65 km da Max) e recarga DC mais rápida (60 kW vs 30 kW)','Melhor multimídia entre os testados: HUD 13,8", som 16 alto-falantes','Pacote semiautônomo completo, idêntico ao da Max (ficha)','Único com estepe (MG!)','Memória dos bancos'],
+ con:['R$ 25 mil mais cara que a Max (R$ 235 mil vs R$ 210 mil), mesmo equipamento, só bateria maior','Menor porta-malas (428 L)','Alerta de velocidade que reinicia em 30 km/h (relatos no YouTube, mesma multimídia da Max)','Motor a combustão fraco (100 cv) puxando ainda mais peso (1.844 kg vs 1.782 kg da Max): preocupa em serra','Vão livre 172 mm (igual à Max): dúvida na rampa','Geely nova no Brasil; versão flex já em produção: risco de revenda','Ar-condicionado de 1 zona'],
+ pend:['Ângulo de transposição oficial (172 mm)','Confirmar se vale os ~R$ 25 mil a mais só pela bateria maior','Saber preço/data da versão flex'],
+ seller:'Mesmo vendedor e condições da Max: começou em R$ 55 mil pelo Fusion e subiu para R$ 61 mil na hora; 60% de entrada + 24× sem juros.'},
+{id:'j7',esperaSem:3,nome:'Jaecoo 7 Luxury',curto:'Jaecoo 7',ano:'2026/27',disp:false,
+ preco:225000,troca:60000,trocaAval:false,descBranco:0,descAvista:0,avista:true,parc:{ent:.6,n:24},flex:false,ipvaRed:false,startMonth:10,
+ d1:.26,d:.14,pneu:5200,kmlG:12.5,kmlE:null,kmlSrc:'estimado (mesmo trem do S06: 13,4 na ficha do S06)',ev:79,evSrc:'Inmetro',garAnos:6,garNota:'não informada na ficha (assumi 6 anos)',
+ s:{pot:279,torque:510,acel:null,vmax:null,tracao:'Dianteira 4x2',bat:18.3,ev:79,tanque:60,comp:4500,larg:1865,alt:1670,entre:2672,vao:174,peso:1795,mala:500,pneus:'235/50 R19',tela:'14,8"',cluster:'10,25"',hud:false,som:'4 alto-falantes + 2 tweeters',memoria:false,estepe:false,bsd:false,zonas:'Dual zone',garantia:'n/d na ficha',ac:null,dc:null,v2l:'3,3 kW',airbags:'Frontais, laterais, cortina + joelho',cam:'540°',adas:'ACC, AEB, TJA, FCW (sem ponto cego)',motor:'1.5 Turbo 135 cv + elétrico 204 cv',consumo:'n/d na ficha',ventil:'Sem ventilação nos bancos',cpw:true},
+ pro:['279 cv oficiais (revisão para baixo: eram 339 cv); nas suas notas, "tão forte quanto o H6"','Compacto (4,50 m): mais fácil para sua esposa','Preço intermediário'],
+ con:['Destracionou fácil mesmo sem chuva; sensação "bobona"','Sem memória de bancos e sem alerta de ponto cego','Telas mais fracas, sem HUD','Interior menos agradável','Chery: confiança menor'],
+ pend:['Confirmar versão: suas notas dizem "Prestige", a ficha é "Luxury"','Avaliação real do Fusion (troca assumida)'],
+ seller:'Não fizeram avaliação do Fusion (assumido R$ 60 mil). 60% de entrada + 24× sem juros. Notas citam "J7 Prestige" a R$ 225 mil; a ficha na pasta é da versão Luxury.'},
+{id:'s06',esperaSem:3,nome:'Jetour S06 Premium',curto:'Jetour S06',ano:'2026/27',disp:false,testado:false,
+ preco:230000,troca:60000,trocaAval:false,descBranco:0,descAvista:0,avista:true,parc:null,flex:false,ipvaRed:false,startMonth:10,
+ d1:.26,d:.14,pneu:7000,kmlG:13.4,kmlE:null,kmlSrc:'ficha (modo híbrido sustentado 13,4 km/l)',ev:70,evSrc:'estimado (ficha só dá 1.200 km totais)',garAnos:7,garNota:'7 anos/150 mil km · bateria/motor 8 anos',
+ s:{pot:null,torque:null,acel:7.8,vmax:180,tracao:'Dianteira',bat:19.43,ev:70,tanque:60,comp:4616,larg:1910,alt:1690,entre:2720,vao:188,peso:1807,mala:416,pneus:'255/45 R20',tela:'15,6"',cluster:'9,2"',hud:false,som:'Sony · 9 alto-falantes',memoria:true,estepe:false,bsd:true,zonas:'Dual zone',garantia:'7 anos/150 mil km · bateria/motor 8 anos/160 mil km',ac:6.6,dc:40,v2l:null,airbags:'Laterais + cortinas',cam:'540°',adas:'ADAS completo (ACC, TJA, AEB, BSD, RCTA…)',motor:'1.5 Turbo 135 cv + elétrico 204 cv',consumo:'13,4 a 32,5 km/l (PBEV)',ventil:'Bancos aquecidos e ventilados',cpw:true},
+ pro:['Memória dos bancos','7 anos de garantia','Vão livre 188 mm','Bancos aquecidos/ventilados, som Sony, tela 15,6"'],
+ con:['Menor porta-malas de todos: 416 L (menor que o EX5!)','Nunca vi nem testei','Marca do grupo Chery','Rodas 20": pneus caros','Sem estepe (relevante para MG)','Só à vista; avaliação do Fusion não feita'],
+ pend:['Fazer test drive','Avaliação real do Fusion'],
+ seller:'Não fizeram avaliação (assumido R$ 60 mil). Pagamento à vista.'},
+{id:'cs55',nome:'Caoa Changan CS55 Ultra PHEV',curto:'CS55 Ultra',ano:'2026/27',disp:false,testado:false,esperaSem:10,dispNota:'só em novembro/2026',
+ preco:190000,troca:60000,trocaAval:false,descBranco:0,descAvista:0,avista:true,parc:null,flex:true,ipvaRed:true,startMonth:11,
+ d1:.26,d:.14,pneu:4800,kmlG:14,kmlE:9.6,kmlSrc:'estimado (ficha dá km/l equivalente elétrico)',ev:76,evSrc:'PBEV',garAnos:7,garNota:'7 anos/150 mil km',
+ s:{pot:286,torque:461,acel:7.2,vmax:null,tracao:'Dianteira',bat:18.4,ev:76,tanque:51,comp:4550,larg:1868,alt:1675,entre:2656,vao:188,peso:1676,mala:525,pneus:'225/55 R19',tela:'14,6"',cluster:'10,3"',hud:false,som:'Pioneer · 8 alto-falantes',memoria:true,estepe:false,bsd:true,zonas:'Dual zone',garantia:'7 anos/150 mil km',ac:null,dc:null,v2l:'220 V',airbags:'Frontais, laterais, cortina',cam:'540° Ultra HD + chassi transparente',adas:'IACC, AEB (pedestres/ciclistas), BSD, DOW…',motor:'1.5 Turbo flex 143 cv + elétrico 234 cv',consumo:'42,2 cidade / 33,5 estrada km/l equivalente',ventil:'Motorista e passageiro ventilados e aquecidos',cpw:true},
+ pro:['Preço mais agressivo (R$ 190 mil) + IPVA reduzido','Design talvez o melhor de todos','Compacto porém com porta-malas grande','Memória de bancos, ventilação, câmera 540° HD, V2L 220 V','7 anos de garantia','Vão livre 188 mm (≈16°): melhor que Song e EX5 para a rampa'],
+ con:['Só chega em novembro; sem test drive','Espaço interno menor que H6, Song e EX5','Sem estepe (confirmado)','Caoa Changan inspira menos confiança','Espera de ~9 semanas: exige revisão e consertos no Fusion antes'],
+ pend:['Fazer reserva/pré-venda e test drive quando chegar','Pedir prazo de entrega firme por escrito'],
+ seller:'Disponível só em novembro/2026 (reservas ou pré-venda). À vista; avaliação do Fusion não feita (assumido R$ 60 mil).'}
+];
+
+/* Notas 0-10 por critério, em duas fontes: [nota das suas anotações, motivo, nota da minha leitura da ficha técnica, motivo].
+   null = a fonte não diz nada. custo, entrega, memória dos bancos, estepe e a parte "ficha" da rampa são calculadas. */
+const SC={
+h6:{dirigir:[8,'Test drive: forte, mas patina ao acelerar forte',8,''],
+ motor:[null,'',8,'1.5 turbo flex de 150 cv e 24,4 kgfm com transmissão DHT-1; 12,9 km/l na gasolina em estrada (Inmetro); tanque de 55 L'],
+ semiauto:[8.5,'Park assist evoluído; até volta de ré sozinho',9,'ACC com Stop & Go, Smart Cornering, manutenção e centralização de faixa, park assist com ré assistida'],
+ seguranca:[null,'',9,'AEB com pedestres, motos e bicicletas; ponto cego; 6 airbags; 5 câmeras + 2 radares'],
+ rampa:[9.5,'"Ótimo vão livre"',null,''],
+ tech:[8,'"Várias tecnologias" (park assist, volta de ré)',8.5,'14,6" + HUD + 9 alto-falantes 216 W, CarPlay sem fio, OTA'],
+ conforto:[null,'',8,'Bancos elétricos e ventilados, dual zone, purificador de ar'],
+ pratico:[null,'',9,'Câmera 540° com chassi invisível, porta-malas hands-free; 4,70 m'],
+ espaco:[null,'',8,'Entre-eixos de 2.738 mm e 1.886 mm de largura'],
+ mala:[null,'',9.5,'560 L (o maior da lista), expansível até 1.445 L'],
+ marca:[8,'Vende muito (revenda); GWM consolidada',7,'Garantia não informada na ficha'],
+ design:[6.5,'Não é espetacular, mas gosta da frente e do aspecto geral',null,'']},
+songpro:{dirigir:[4.5,'Claramente o mais fraco que dirigiu',4.5,''],
+ motor:[3.5,'Aspirado, mais fraco: vai fazer falta em situações extremas? Empurra o carro e carrega a bateria?',4,'1.5 aspirado flex de 105 cv e 13,8 kgfm; 219 cv combinados (o menor conjunto da lista); tanque de 52 L'],
+ semiauto:[null,'',7,'ACC, LKA e alerta de mudança de faixa; sem estacionamento assistido na ficha'],
+ seguranca:[8,'"ADAS completo" no papel',8,'AEB, ponto cego, alerta de tráfego cruzado, 6 airbags, câmera 360°'],
+ rampa:[3,'O mais baixo de todos: receio de não transpor a rampa',null,''],
+ tech:[4,'Telas muito fracas; cluster "de Android de 10 anos atrás"',5.5,'12,8" + cluster 8,8", 8 alto-falantes, sem HUD'],
+ conforto:[6,'Interior fraco; "compra racional"',6.5,'Teto panorâmico, bancos elétricos; sem ventilação'],
+ pratico:[null,'',7,'Câmera 360°, porta-malas elétrico; 4,74 m'],
+ espaco:[null,'',7.5,'Entre-eixos de 2.710 mm e 1.860 mm de largura'],
+ mala:[null,'',8,'530 L, 1.482 L com bancos rebatidos'],
+ marca:[9,'BYD gigante, vende muito',8.5,'Garantia 6 anos/200 mil km, bateria 8 anos'],
+ design:[7,'Nova dianteira agradou',null,'']},
+songplus:{dirigir:[6.5,'Competente na cidade e em estrada curta; não encanta',6,''],
+ motor:[null,'',7.5,'1.5 turbo (DM-i) de 130 cv e 22,4 kgfm; tanque de 57 L; ~14 km/l estimados em híbrido'],
+ semiauto:[null,'',7,'ACC, LKA e alerta de mudança de faixa; sem estacionamento assistido na ficha'],
+ seguranca:[null,'',8,'AEB, ponto cego, 6 airbags, câmera 360°'],
+ rampa:[null,'',null,''],
+ tech:[null,'',8.5,'15,6" rotativa + HUD + 10 alto-falantes Infinity'],
+ conforto:[8,'Acabamento entre os melhores; mais refinado que o Pro',8,'Bancos ventilados, 2 zonas, luz ambiente'],
+ pratico:[null,'',7,'Câmera 360°, porta-malas elétrico, cortina elétrica do teto; 4,78 m'],
+ espaco:[null,'',9,'O maior entre-eixos da lista (2.770 mm) e 1.890 mm de largura'],
+ mala:[null,'',8.5,'552 L'],
+ marca:[9,'BYD gigante, vende muito',8.5,'Garantia 6 anos/200 mil km, bateria 8 anos'],
+ design:[5,'Não gosta muito, mas "não me ofende"',null,'']},
+songpremium:{dirigir:[null,'Não fez test drive',9.5,''],
+ motor:[null,'',7.5,'1.5 turbo (DM-i) de 130 cv e 22,4 kgfm + 2 elétricos; tanque de 57 L'],
+ semiauto:[null,'',7,'ACC, LKA e alerta de mudança de faixa; sem estacionamento assistido na ficha'],
+ seguranca:[8.5,'Tração integral e potência extra: mais segurança',8.5,'Igual ao Plus + AWD'],
+ rampa:[null,'',null,''],
+ tech:[null,'',8.5,'Igual ao Plus: 15,6" + HUD + Infinity'],
+ conforto:[7.5,'Bege/caramelo pode manchar com crianças',8.5,'Bancos ventilados e aquecidos'],
+ pratico:[null,'',7,'Câmera 360°, porta-malas elétrico; 4,78 m'],
+ espaco:[null,'',9,'2.770 mm de entre-eixos e 1.890 mm de largura'],
+ mala:[null,'',8.5,'552 L'],
+ marca:[8,'BYD, mas do ano anterior (2025/26)',8.5,'Garantia 6 anos/200 mil km'],
+ design:[5,'Idêntico ao Plus: "meh"',null,'']},
+ex5:{dirigir:[9,'O que mais gostou de dirigir: esperto sem ser descontrolado',6.5,''],
+ motor:[3,'Aspirado, mais fraco: preocupa em situações extremas (empurrar o carro e carregar a bateria)',3.5,'1.5 aspirado de 100 cv e 12,7 kgfm: a menor combustão da lista; tanque de 60 L'],
+ semiauto:[9.5,'Pacote semiautônomo: a melhor impressão de todos que testou',9,'ACC, ICC (piloto inteligente), LKA/ELKA, assistente de mudança de faixa, reconhecimento de placas'],
+ seguranca:[8.5,'Herança Volvo reforça a credibilidade dos sistemas de segurança',8.5,'AEB, CMSF/CMSR, RCTB, ponto cego, 6 airbags, câmera 540°'],
+ rampa:[5,'Vão livre "nem ruim, nem bom": leve receio',null,''],
+ tech:[9.5,'Telas ótimas, HUD excelente, som com alto-falantes no encosto',9.5,'HUD 13,8", 15,4", 16 alto-falantes Flyme'],
+ conforto:[7,'Acabamento bom, talvez atrás do Plus; sem couro; ar de 1 zona',7.5,'Bancos ventilados; ar automático'],
+ pratico:[7,'Alarme de velocidade chato (reinicia em 30 km/h)',7.5,'Câmera 540°, porta-malas elétrico com trava; 4,74 m'],
+ espaco:[null,'',8.5,'2.755 mm de entre-eixos e a maior largura da lista (1.905 mm)'],
+ mala:[4.5,'O menor porta-malas dos testados: pequena chateação nas viagens a MG',4.5,'428 L (medida VDA, pode não ser comparável com as outras marcas)'],
+ marca:[6,'Geely nova no Brasil, mas dona da Volvo',7,'Garantia 6 anos/150 mil km, bateria 8 anos'],
+ design:[6,'"Ok"; o branco pareceu bonito',null,'']},
+ex5ultra:{dirigir:[9,'O que mais gostou de dirigir: esperto sem ser descontrolado (mesmo test drive da Max; mecânica idêntica, mas 62 kg mais pesada)',6.5,''],
+ motor:[3,'Aspirado, mais fraco: preocupa em situações extremas (empurrar o carro e carregar a bateria), ainda mais com o peso extra da bateria maior (1.844 kg)',3.5,'1.5 aspirado de 100 cv e 12,7 kgfm: a menor combustão da lista; tanque de 60 L'],
+ semiauto:[9.5,'Pacote semiautônomo: a melhor impressão de todos que testou (mesmo sistema da Max)',9,'ACC, ICC (piloto inteligente), LKA/ELKA, assistente de mudança de faixa, reconhecimento de placas'],
+ seguranca:[8.5,'Herança Volvo reforça a credibilidade dos sistemas de segurança',8.5,'AEB, CMSF/CMSR, RCTB, ponto cego, 6 airbags, câmera 540°'],
+ rampa:[5,'Vão livre "nem ruim, nem bom": leve receio (mesma altura livre da Max, 172 mm)',null,''],
+ tech:[9.5,'Telas ótimas, HUD excelente, som com alto-falantes no encosto (mesmo sistema da Max)',9.5,'HUD 13,8", 15,4", 16 alto-falantes Flyme'],
+ conforto:[7,'Acabamento bom, talvez atrás do Plus; sem couro; ar de 1 zona',7.5,'Bancos ventilados; ar automático'],
+ pratico:[7,'Alarme de velocidade chato (reinicia em 30 km/h)',7.5,'Câmera 540°, porta-malas elétrico com trava; 4,74 m'],
+ espaco:[null,'',8.5,'2.755 mm de entre-eixos e a maior largura da lista (1.905 mm)'],
+ mala:[4.5,'O menor porta-malas dos testados: pequena chateação nas viagens a MG',4.5,'428 L (medida VDA, pode não ser comparável com as outras marcas)'],
+ marca:[6,'Geely nova no Brasil, mas dona da Volvo',7,'Garantia 6 anos/150 mil km, bateria 8 anos; R$ 25 mil mais cara que a Max só pela bateria maior'],
+ design:[6,'"Ok"; o branco pareceu bonito (mesmo desenho externo da Max)',null,'']},
+j7:{dirigir:[7,'Forte, mas "bobão" e destraciona fácil',7,'potência oficial revisada para baixo (eram 339 cv); 0–100 n/d'],
+ motor:[null,'',7,'1.5 turbo de 135 cv e 200 Nm; tanque de 60 L'],
+ semiauto:[null,'',6.5,'ACC, assistente de congestionamento (TJA) e alerta de saída de faixa (LDW); sem manutenção ativa de faixa nem estacionamento assistido na ficha'],
+ seguranca:[5.5,'Sem alerta de ponto cego: desanima',6,'AEB, FCW, airbags frontais, laterais, cortina e de joelho; sem ponto cego'],
+ rampa:[null,'',null,''],
+ tech:[5.5,'Telas fracas, sem HUD',6.5,'14,8" + 10,25", 540°; som 4+2; sem HUD'],
+ conforto:[6,'Interior de que gosta menos',6.5,'Material sintético; dual zone'],
+ pratico:[null,'',7,'Compacto (4,50 m): fácil de manobrar; câmera 540°'],
+ espaco:[null,'',6,'Entre-eixos curto (2.672 mm) e 1.865 mm de largura'],
+ mala:[null,'',6.5,'500 L'],
+ marca:[4,'Chery: "lambança" com o QQ e situação confusa de marcas',5.5,'Garantia não informada na ficha'],
+ design:[6.5,'Externo "ok"; não é fã da linha Range Rover',null,'']},
+s06:{dirigir:[null,'Nunca dirigiu',7,'135 + 204 cv (mesmo conjunto do J7, cuja potência combinada oficial foi revisada: confirmar a do S06)'],
+ motor:[null,'',7,'1.5 turbo de 135 cv e 200 Nm (mesmo conjunto do J7); 13,4 km/l em híbrido sustentado (ficha); tanque de 60 L'],
+ semiauto:[null,'',8,'ACC, assistente de tráfego (TJA), ICA, manutenção de faixa (LKA) e assistente de estacionamento 540°'],
+ seguranca:[null,'',7.5,'AEB, ponto cego, alerta de tráfego cruzado, câmera 540°; airbags laterais e de cortina'],
+ rampa:[null,'',null,''],
+ tech:[null,'',8,'15,6", Sony 9 alto-falantes; sem HUD'],
+ conforto:[null,'',8,'Bancos aquecidos e ventilados, luz ambiente'],
+ pratico:[null,'',7.5,'Câmera 540°, porta-malas com fechamento automático; 4,62 m'],
+ espaco:[null,'',7.5,'2.720 mm de entre-eixos e 1.910 mm de largura'],
+ mala:[null,'',4,'416 L: o menor da lista'],
+ marca:[4.5,'Marca Chery: não passa confiança',7,'Garantia de 7 anos/150 mil km'],
+ design:[null,'Não conhece o carro',5,'Sem opinião: nota neutra']},
+cs55:{dirigir:[null,'Não dirigiu',7.5,'retomadas rápidas'],
+ motor:[null,'',8,'1.5 turbo (TGDI) flex de 4 cilindros, 143 cv e 21,9 kgfm: a maior combustão entre as que informam; tanque de 51 L'],
+ semiauto:[null,'',8,'IACC (piloto adaptativo integrado), LKA, assistente de mudança de faixa e assistência de estacionamento (entrar e sair em linha reta)'],
+ seguranca:[null,'',8,'AEB com pedestres e ciclistas, ponto cego, 6 airbags, câmera 540° HD'],
+ rampa:[null,'',null,''],
+ tech:[7.5,'"Boas telas, bom sistema multimídia" (showroom)',7.5,'14,6" + 10,3", Pioneer 8 alto-falantes; sem HUD'],
+ conforto:[6.5,'Acabamento não chama atenção, mas não parece ruim',8,'Bancos ventilados e aquecidos, console refrigerado'],
+ pratico:[null,'',8,'Compacto (4,55 m), câmera 540° HD com chassi transparente, porta-malas elétrico'],
+ espaco:[6,'Espaço interno decente, mas claramente menor que H6, Song e EX5',5.5,'O menor entre-eixos da lista (2.656 mm) e 1.868 mm de largura'],
+ mala:[8.5,'Porta-malas grande, mesmo sendo um carro mais curto',8,'525 L, 1.415 L com bancos rebatidos'],
+ marca:[4.5,'Caoa Changan inspira menos confiança',7.5,'Garantia 7 anos/150 mil km'],
+ design:[9,'"Talvez o melhor de todos"',null,'']}
+};
+
+
+/* =====================================================================
+   ESTADO
+   ===================================================================== */
+/* Especialistas: síntese de ~30 vídeos no NotebookLM (rodadas de 20/09/2026), só para os 3 finalistas.
+   [nota 0-10, justificativa]. Onde ficha e vídeo divergem, vale a ficha; ressalvas descritas no texto. */
+const EXP={
+h6:{conforto:[8.3,'Rodagem 8,0: amortecedores atualizados no 2026/27 e bom isolamento, mas ainda “pula” em lombada rápida e balança em curva. Acabamento 8,5: soft touch na frente, plástico duro nas portas traseiras, couro simples, interior preto. Confiança alta.'],
+ espaco:[8.5,'Muito espaço atrás e boa altura de cabeça; assento dianteiro curto, sem apoio de coxa para motorista alto. Sem regulagem de altura do cinto (só nos vídeos). Confiança alta.'],
+ dirigir:[7.8,'Dirigibilidade 7,0: direção leve e desconectada, traseira “samba” em desvio brusco, patina no molhado (2 vídeos, batendo com o seu test drive). Desempenho 8,5: retomadas fortes, 0–100 em 7,4 s (ficha).'],
+ semiauto:[8.8,'ACC e centralização de faixa os mais completos do trio (Stop & Go, Smart Cornering, desvio de caminhão); ativação simples pela haste da coluna.'],
+ pratico:[7.8,'Manobra 9,5 (câmeras 540° com chassi transparente, Auto Reverse) e recarga 9,0, mas alertas 5,0: apitos em excesso do ADAS. Sem botão físico de ar-condicionado (2 vídeos).'],
+ tech:[7.0,'Tela de 14,6” fluida, voz em português, CarPlay sem fio e HUD; sem botões físicos de clima; som criticado nos vídeos (a ficha lista 9 alto-falantes com subwoofer).']},
+songpremium:{conforto:[8.8,'Rodagem 9,0: suspensão mais firme que a do Plus FWD (só 2 vídeos falam do Premium AWD) e silêncio em EV. Acabamento 8,5: o mais refinado do trio; a cor interna clara nos vídeos diverge da ficha (Blue and Grey ou Black & Brown), a confirmar em estoque.'],
+ espaco:[9.0,'Maior entre-eixos (2.770 mm), piso plano. Encosto traseiro reclinável e cinto com altura ajustável só nos vídeos, não nas fichas. Confiança alta (interior igual ao do Plus).'],
+ dirigir:[9.3,'AWD com motor elétrico traseiro: a melhor aderência do trio; 0–100 em 5,2 s (ficha). Freio de curso longo e direção leve. Você não dirigiu o Premium.'],
+ semiauto:[8.0,'ACC suave, Stop & Go melhorado em 2026; LKA que “briga” (1 canal); contorno de curvas menos sofisticado que o do H6.'],
+ pratico:[8.3,'Manobra 8,5 (vidro traseiro estreito), recarga 8,5 (ficha: 18 kW DC), alertas 8,0 (o menos barulhento, segundo 2 canais).'],
+ tech:[9.0,'Tela rotativa de 15,6”, HUD, som Infinity com 10 alto-falantes, teclas físicas para modos. 1 canal relata travamento do Waze pelo CarPlay; CarPlay sem fio a confirmar (a ficha não diz).']},
+ex5:{conforto:[7.7,'Rodagem ~7,3: avaliadores divididos (“tapete” contra molenga, com rolagem e fim de curso em lombada); a ficha confirma o teto panorâmico da Max. Acabamento 8,0: soft touch, botões físicos, caixas de roda em plástico cru, interior escuro (ficha: Dark Blue). Confiança média.'],
+ espaco:[8.0,'Joelhos com sobra e piso plano; encosto traseiro fixo, posição de dirigir alta e sem lombar elétrica. Sem regulagem de altura do cinto (só nos vídeos). Confiança média/alta.'],
+ dirigir:[7.8,'Dirigibilidade 7,5: dócil e fácil, mas com rolagem, direção sem comunicação e freio sensível. Desempenho 8,0 (0–100 em 7,8 s, ficha). Não testado no molhado.'],
+ semiauto:[8.3,'ACC suave com Stop & Go, projeta o tráfego no HUD; leitura de faixa boa.'],
+ pratico:[7.0,'Manobra 9,0 e recarga 9,0, mas alertas 3,0: o aviso do leitor de placas reativa a cada partida (4 avaliadores). Confirmar com o vendedor se dá para desligar de vez.'],
+ tech:[8.5,'Tela de 15,4”, HUD de 13,8”, 16 alto-falantes com som no encosto do motorista e botões físicos de clima (vídeos). Vidros com lógica invertida e farol só pela tela.']}
+};
+/* Notas manuais (0–10) que sobrescrevem o cálculo; entram no estado inicial e em "Restaurar tudo" */
+const DEF_SC={
+ h6:{tech:8,design:9,dirigir:8,marca:9,motor:9,semiauto:9,mala:10,espaco:10,conforto:8.5,pratico:8.5},
+ songpro:{tech:3,conforto:5,design:5,marca:10,dirigir:5,motor:7,semiauto:6.5,mala:7.5,espaco:7,pratico:6},
+ songplus:{conforto:8.5,dirigir:6,design:8,tech:8,motor:8,marca:10,mala:9.5,espaco:10,semiauto:7.5},
+ songpremium:{conforto:9,dirigir:9.5,design:7.5,tech:8,marca:10,motor:8,mala:9.5,espaco:9.5,semiauto:7.5,pratico:8},
+ ex5:{conforto:8,dirigir:7,tech:9,marca:6,design:9,motor:7,semiauto:8.5,mala:6,espaco:9,pratico:7},
+ j7:{conforto:5,design:8,dirigir:7.5,marca:5,motor:6.5,semiauto:5,mala:5,tech:5},
+ s06:{tech:4,design:6,motor:6.5,semiauto:7,marca:5,mala:5,espaco:8,conforto:6.5,pratico:7},
+ cs55:{conforto:9,design:9,tech:6,marca:4,dirigir:7.5,motor:6.5,mala:7.5,espaco:6}
+};
+const KEY='carros-dash-v1';
+const fresh=()=>({ver:2,g:{...DEF_G},car:{},sc:JSON.parse(JSON.stringify(DEF_SC)),w:{...PRESETS.meu.w},preset:'meu',flt:{disp:false,memoria:false,estepe:false,awd:false,hud:false,bsd:false,flex:false,ang:13},sel:BASE.map(c=>c.id),tab:'visao',todo:{},sort:'overall',theme:'auto'});
+let S=fresh();
+try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o.g&&o.g.mixEsp==null)o.g.mixNotas=DEF_G.mixNotas;
+  if(o.ver!==2){delete o.w;delete o.preset;Object.values(o.sc||{}).forEach(m=>['seguranca','pratico','espaco'].forEach(k=>delete m[k]))} // domínios reorganizados: descarta pesos e notas editadas dos que mudaram de sentido
+  S={...fresh(),...o,ver:2,g:{...DEF_G,...o.g},flt:{...fresh().flt,...o.flt},w:{...PRESETS.meu.w,...o.w}}}}catch(e){}
+if(S.sort==='mensal'||S.sort==='total')S.sort='hold';
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+const getCar=id=>{const b=BASE.find(c=>c.id===id);return (()=>{const c=Object.assign({testado:true,esperaSem:0},b,S.car[id]||{});c.disp=!(c.esperaSem>0);return c})()};
+const CARS=()=>BASE.map(b=>getCar(b.id));
+
+/* =====================================================================
+   FORMATAÇÃO
+   ===================================================================== */
+const nf0=new Intl.NumberFormat('pt-BR',{maximumFractionDigits:0});
+const nf1=new Intl.NumberFormat('pt-BR',{minimumFractionDigits:1,maximumFractionDigits:1});
+const nf2=new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const R=n=>(n<0?'−':'')+'R$ '+nf0.format(Math.abs(Math.round(n)));
+const Rk=n=>(n<0?'−':'')+'R$ '+nf1.format(Math.abs(n)/1000).replace(',0','')+' mil';
+const P=n=>nf1.format(n)+'%';
+const minHold=()=>Math.min(...C.res.map(r=>r.pvHold));
+const Dlt=r=>{const d=Math.round(r.pvHold-minHold());return d>0?'+ '+R(d):R(0)};
+const esc=s=>String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const clamp=(x,a,b)=>Math.min(b,Math.max(a,x));
+const FMT={pct2:v=>nf2.format(v)+'%',pct1:v=>nf1.format(v)+'%',pct0:v=>nf0.format(v)+'%',brl2:v=>'R$ '+nf2.format(v),brl0:v=>'R$ '+nf0.format(v),x2:v=>'×'+nf2.format(v),int:v=>nf0.format(v),dec1:v=>nf1.format(v),sem:v=>nf0.format(v)+' sem',deg:v=>v?('≥ '+nf1.format(v)+'°'):'desligado'};
+
+/* =====================================================================
+   MODELO FINANCEIRO
+   ===================================================================== */
+const rM=g=>Math.pow(1+(g.selic/100)*(1-g.ir/100),1/12)-1;
+const annuity=(r,n)=>(1-Math.pow(1+r,-n))/r;
+const ipvaRate=(c,y)=>!c.ipvaRed?.04:y<=2026?0:y===2027?.01:y===2028?.02:y===2029?.03:.04;
+const angulo=c=>c.s.vao?2*Math.atan(2*c.s.vao/c.s.entre)*180/Math.PI:null;
+
+function usage(g){
+  const cats=[
+   {k:'escola',nome:'Escola (2 idas e voltas por dia)',km:36*g.diasEscola},
+   {k:'compras',nome:'Compras (Tauste, Galleria)',km:550},
+   {k:'cambui',nome:'Cambuí e outros',km:480},
+   {k:'valinhos',nome:'Valinhos',km:44*g.valinhos},
+   {k:'viagens',nome:'Viagens curtas e médias',km:g.outrasViagens*g.kmOutra},
+   {k:'mg',nome:'Simonésia-MG',km:g.viagensMG*g.kmMG}];
+  const total=cats.reduce((a,c)=>a+c.km,0);
+  const urban=cats.slice(0,4).reduce((a,c)=>a+c.km,0);
+  return {cats,total,urban,long:total-urban,valinhos:cats[3].km};
+}
+function fuelOf(c,g,u){
+  const evR=(c.ev||0)*g.evFator, legs=2*(g.viagensMG+g.outrasViagens);
+  const longKm=Math.max(0,u.long-legs*evR);
+  const valKm=g.valinhos*Math.max(0,44-evR);
+  const noCharge=(g.semCarga/100)*(u.urban-u.valinhos);
+  const fuelKm=longKm+valKm+noCharge;
+  const cg=g.gas/c.kmlG, ce=c.flex&&c.kmlE?g.etanol/c.kmlE:Infinity;
+  const cpk=Math.min(cg,ce);
+  return {evR,fuelKm,cpk,fuel:ce<cg?'etanol':'gasolina',cost:fuelKm*cpk,litros:fuelKm*cpk/(ce<cg?g.etanol:g.gas),evShare:1-fuelKm/u.total};
+}
+
+function model(c,g,u){
+  const r=rM(g), M=Math.round(g.horizonte*12);
+  const troca=g.trocaModo==='uni'?g.trocaUni:c.troca;
+  const extra=c.descExtra||0;
+  const fin=c.preco-(g.branco?c.descBranco:0)-extra;
+  const cashP=fin-c.descAvista;
+  const mercado=c.preco-(g.branco?c.descBranco:0)-c.descAvista;
+  const opts={};
+  if(c.avista) opts.avista={pv:cashP-troca,hoje:cashP-troca,total:cashP-troca,parcela:0,n:0,preco:cashP};
+  if(c.parc){const ent=fin*c.parc.ent,n=c.parc.n,p=(fin-ent)/n;
+    let iof=0;if(g.iofOn)for(let k=1;k<=n;k++)iof+=p*(0.0038+0.000082*Math.min(30*k,365));
+    const fees=iof+g.tarifas;
+    opts.parc={pv:ent-troca+fees+p*annuity(r,n),hoje:ent-troca+fees,total:fin-troca+fees,parcela:p,n,preco:fin,entrada:ent,iof,tarifas:g.tarifas,fees}}
+  if(!opts.avista&&!opts.parc) opts.avista={pv:cashP-troca,hoje:cashP-troca,total:cashP-troca,parcela:0,n:0,preco:cashP};
+  let pick;
+  if(g.pagto==='avista'&&opts.avista) pick='avista';
+  else if(g.pagto==='parc'&&opts.parc) pick='parc';
+  else pick=(!opts.parc||(opts.avista&&opts.avista.pv<=opts.parc.pv))?'avista':'parc';
+  const best=(opts.avista&&opts.parc)?(opts.avista.pv<=opts.parc.pv?'avista':'parc'):pick;
+  const pay=opts[pick];
+  const d1=clamp(c.d1*g.depMult,0,.9),d=clamp(c.d*g.depMult,0,.9);
+  const V=t=>{const y=t/12;return mercado*Math.pow(1-d1,Math.min(y,1))*Math.pow(1-d,Math.max(0,y-1))};
+  const f=fuelOf(c,g,u);
+  const tireYear=c.pneu*u.total/g.kmPneu;
+  let pvIpva=0,pvIns=0,pvMan=0,pvFuel=0;
+  const ipvaAno={};
+  const disc=t=>Math.pow(1+r,-t);
+  for(let t=0;t<M;t++){
+    const cal=2026*12+(c.startMonth-1)+t, y=Math.floor(cal/12), mo=cal%12+1;
+    if(t===0||mo===1){
+      const meses=t===0?Math.min(M,13-c.startMonth):Math.min(12,M-t);
+      const v=ipvaRate(c,y)*V(t)*meses/12;
+      ipvaAno[y]=(ipvaAno[y]||0)+v; pvIpva+=v*disc(t);
+    }
+    pvIns+=g.seguro/100*V(t)/12*disc(t);
+    const pos=t>=12*c.garAnos?g.manutPos:0;
+    pvMan+=((g.manut+pos)/12+tireYear/12)*disc(t);
+    pvFuel+=f.cost/12*disc(t);
+  }
+  const resale=V(M), pvResale=resale*disc(M);
+  const cap=pay.pv-pvResale;
+  const w=(c.esperaSem||0)/4.345,manut=c.esperaSem>g.fusManutSem; // w em meses; manutenção só se a espera passar do limite
+  const fusMes=(u.urban/7.5+u.long/10)*g.gas/12;
+  const espDet={consertos:manut?g.fusRevisao+g.fusFreios+(c.esperaSem>=g.fusPneusSem?g.fusPneus:0):0,troca:troca*g.fusDesv/100*w,extra:w*(fusMes-f.cost/12+g.seguro/100*troca/12)};
+  const pvEsp=w>0?espDet.consertos+espDet.troca+espDet.extra:0;
+  const total=cap+pvIpva+pvIns+pvMan+pvFuel+pvEsp;
+  const pvHold=pay.pv+pvIpva; // só ter: aquisição (líquida do Fusion, com taxas do parcelamento) + IPVA; sem revenda
+  const mensal=total*r/(1-Math.pow(1+r,-M));
+  const ipva4=Object.keys(ipvaAno).reduce((a,y)=>a,0);
+  return {c,r,M,troca,fin,cashP,mercado,opts,pick,best,pay,V,resale,pvResale,cap,pvIpva,pvIns,pvMan,pvFuel,pvHold,total,mensal,ipvaAno,f,tireYear,
+   comp:{cap,ipva:pvIpva,seg:pvIns,man:pvMan,comb:pvFuel,esp:pvEsp},pvEsp,espDet,ang:angulo(c),
+   ipvaSemBeneficio:(()=>{let s=0;for(const y in ipvaAno){const rt=ipvaRate(c,+y);s+=rt?ipvaAno[y]*.04/rt:0}return s})()};
+}
+
+function parts(m,id,k){
+  if(k==='entrega'){const w=m.c.esperaSem||0;return {n:null,nt:'',f:clamp(10-0.7*w,0,10),ft:w>0?`Espera de ${nf0.format(w)} semanas: perde 0,7 ponto por semana (você quer o carro logo que decidir)`:'Entrega imediata: nota 10',auto:true}}
+  if(k==='autonomia'){const ev=m.c.s.ev;
+    return {n:null,nt:'',f:ev?clamp((ev-40)/60*10,0,10):5,ft:ev?`Autonomia elétrica oficial de ${nf0.format(ev)} km (Inmetro/PBEV), bateria de ${nf1.format(m.c.s.bat)} kWh (40 km ou menos = 0; 100 km ou mais = 10; entre os dois, proporcional). Na estrada e com ar-condicionado a autonomia real fica perto de ${nf0.format(ev*S.g.evFator)} km (fator ${nf2.format(S.g.evFator)} das premissas)`:'Autonomia elétrica não consta na ficha: nota neutra',auto:true}}
+  if(k==='memoria'||k==='estepe'){const v=m.c.s[k],lab=k==='memoria'?'memória dos bancos':'estepe';
+    return {n:null,nt:'',f:v===true?10:v===false?0:5,ft:v===true?`Tem ${lab}: nota 10`:v===false?(k==='estepe'?'Sem estepe (só kit de reparo): nota 0':'Sem memória dos bancos: nota 0'):'Não consta na ficha: nota neutra',auto:true}}
+  const a=(SC[id]&&SC[id][k])||[null,'',null,''];
+  let f=a[2],ft=a[3];
+  if(k==='dirigir'){const s=m.c.s,b=[];
+    if(s.pot)b.push(nf0.format(s.pot)+' cv');if(s.torque)b.push(nf0.format(s.torque)+' Nm');
+    if(s.acel)b.push('0–100 em '+nf1.format(s.acel)+' s');if(s.vmax)b.push('máx. '+nf0.format(s.vmax)+' km/h');
+    if(s.peso)b.push(nf0.format(s.peso)+' kg'+(s.pot?' ('+nf1.format(s.peso/s.pot)+' kg/cv)':''));
+    if(s.tracao)b.push(/AWD/.test(s.tracao)?'tração integral (AWD)':'tração '+s.tracao.toLowerCase());if(s.pneus)b.push('pneus '+s.pneus);
+    ft=b.join(' · ')+(ft?' · '+ft:'')}
+  if(k==='rampa'){return {n:null,nt:'',f:m.ang==null?5:clamp((m.ang-13)/2*10,0,10),ft:m.ang==null?'Vão livre n/d: nota neutra':`Vão livre ${m.c.s.vao} mm e entre-eixos ${nf0.format(m.c.s.entre)} mm ≈ ${nf1.format(m.ang)}° (abaixo de 13° = 0; acima de 15° = 10; entre os dois, proporcional)`,auto:true}}
+  const x=(EXP[id]&&EXP[id][k])||[null,''];
+  return {n:a[0],nt:a[1],f,ft,e:x[0],et:x[1]};
+}
+function mixW(){const n=clamp(+S.g.mixNotas||0,0,100),e=clamp(+S.g.mixEsp||0,0,100-n);return {n,e,f:100-n-e}}
+function calcScore(m,id,k){
+  const p=parts(m,id,k),w=mixW(),src=[[p.n,w.n],[p.e,w.e],[p.f,w.f]].filter(x=>x[0]!=null);
+  if(!src.length) return 5;
+  const tw=src.reduce((a,x)=>a+x[1],0);
+  return tw>0?src.reduce((a,x)=>a+x[0]*x[1],0)/tw:src.reduce((a,x)=>a+x[0],0)/src.length;
+}
+function scoreOf(m,id,k){
+  if(k==='rampa') return calcScore(m,id,k);
+  const o=S.sc[id]&&S.sc[id][k];
+  if(o!=null&&o!=='') return +o;
+  return calcScore(m,id,k);
+}
+/* só conta como sobrescrita se a nota digitada difere da calculada (no que se vê, 1 casa) */
+function isOverride(m,id,k){
+  if(k==='rampa') return false;
+  const o=S.sc[id]&&S.sc[id][k];
+  if(o==null||o==='') return false;
+  return Math.round(+o*10)!==Math.round(calcScore(m,id,k)*10);
+}
+function scoreTip(m,id,k){
+  const crit=CRIT.find(x=>x.k===k),man=isOverride(m,id,k);
+  if(k==='custo') return `<b>${esc(crit.nome)}</b><div class="m">Calculado: o mais barato do conjunto = 10; perde 1 ponto a cada ${R(S.g.custoPP)}/mês a mais (ajustável em Perspectivas).</div>`;
+  const p=parts(m,id,k),w=mixW();
+  const line=(lab,v,t)=>`<div style="margin-top:4px"><span class="m">${lab}:</span> <b>${v!=null?nf1.format(v):'—'}</b><div class="m">${esc(t||'sem informação')}</div></div>`;
+  let h=`<b>${esc(m.c.curto)} · ${esc(crit.nome)}</b>`;
+  if(p.auto) h+=line('Calculado',p.f,p.ft);
+  else h+=line('Suas anotações',p.n,p.nt)+(p.e!=null?line('Especialistas (NotebookLM)',p.e,p.et):'')+line('Minha avaliação (ficha)',p.f,p.ft);
+  const srcs=[['anotações',p.n,w.n],['especialistas',p.e,w.e],['ficha',p.f,w.f]].filter(x=>x[1]!=null),tot=srcs.reduce((a,x)=>a+x[2],0);
+  const mix=srcs.length>1?'combinação '+srcs.map(x=>nf0.format(tot>0?x[2]/tot*100:100/srcs.length)+'% '+x[0]).join(' + '):'só '+(srcs[0]?srcs[0][0]:'—')+' '+(srcs[0]&&srcs[0][0]==='anotações'?'têm':'tem')+' informação';
+  h+=`<div style="margin-top:6px;border-top:1px solid var(--grid);padding-top:4px"><span class="m">Nota final:</span> <b>${nf1.format(m.sc[k])}</b>${man?' <span class="m">(sobrescrita por você)</span>':p.auto?'':`<div class="m">${mix}</div>`}</div>`;
+  return h;
+}
+
+function compute(gOver,carAdj,weights){
+  const g=gOver||S.g, w=weights||S.w, u=usage(g);
+  const cars=CARS().map(c=>carAdj&&carAdj[c.id]?{...c,descExtra:(c.descExtra||0)+carAdj[c.id]}:c);
+  const res=cars.map(c=>model(c,g,u));
+  const ms=res.map(r=>r.mensal),mn=Math.min(...ms),mx=Math.max(...ms);
+  const wsum=CRIT.reduce((a,k)=>a+(+w[k.k]||0),0)||1;
+  const wq=wsum-(+w.custo||0)||1;
+  res.forEach(r=>{
+    r.sc={};
+    CRIT.forEach(k=>{r.sc[k.k]=k.k==='custo'?clamp(10-(r.mensal-mn)/g.custoPP,0,10):scoreOf(r,r.c.id,k.k)});
+    r.overall=CRIT.reduce((a,k)=>a+(+w[k.k]||0)*r.sc[k.k],0)/wsum;
+    r.Q=CRIT.filter(k=>k.k!=='custo').reduce((a,k)=>a+(+w[k.k]||0)*r.sc[k.k],0)/wq;
+    r.vfm=r.Q/(r.total/1e5);
+    r.fails=failsOf(r);
+  });
+  res.forEach(r=>{
+    const a=res.filter(o=>!o.fails.length);
+    r.dominated=!r.fails.length&&a.some(o=>o!==r&&o.mensal<=r.mensal&&o.Q>=r.Q&&(o.mensal<r.mensal||o.Q>r.Q));
+    /* "não compensa": não é estritamente dominado, mas outro carro tem um ganho de qualidade
+       (>= 0,5 ponto) que vale mais que o custo extra, pela sua taxa de troca (custoPP = R$/mês por ponto) */
+    r.poorBy=null;
+    if(!r.fails.length&&!r.dominated){
+      let best=0;
+      a.forEach(o=>{const dq=o.Q-r.Q,dm=o.mensal-r.mensal;if(o!==r&&dq>=.5&&dm<=dq*g.custoPP&&dq>best){best=dq;r.poorBy=o}});
+    }
+    r.poor=!!r.poorBy;
+  });
+  const ok=res.filter(r=>!r.fails.length).sort((a,b)=>b.overall-a.overall);
+  res.forEach(r=>{r.rank=r.fails.length?99:ok.indexOf(r)+1});
+  return {res,u,g,ok,mn,mx};
+}
+function failsOf(r){
+  const f=S.flt,s=r.c.s,o=[];
+  if(f.disp&&!r.c.disp) o.push('espera de '+nf0.format(r.c.esperaSem)+' semanas');
+  if(f.memoria&&!s.memoria) o.push('sem memória de bancos');
+  if(f.estepe&&s.estepe!==true) o.push(s.estepe===null?'estepe não confirmado':'sem estepe');
+  if(f.awd&&!/AWD/.test(s.tracao)) o.push('sem tração integral');
+  if(f.hud&&!s.hud) o.push('sem HUD');
+  if(f.bsd&&!s.bsd) o.push('sem ponto cego');
+  if(f.flex&&!r.c.ipvaRed) o.push('sem IPVA reduzido');
+  if(f.ang>0&&(r.ang==null||r.ang<f.ang)) o.push(r.ang==null?'ângulo n/d':'ângulo '+nf1.format(r.ang)+'°');
+  return o;
+}
+let C=null;
+
+/* =====================================================================
+   COMPONENTES DE GRÁFICO
+   ===================================================================== */
+const tipAttr=html=>` data-tip="${esc(html)}"`;
+const critTip=k=>tipAttr(`<b>${esc(k.nome)}</b><div class="m">Entra no julgamento:</div><ul class="pc" style="margin:2px 0 0">${k.dica.map(d=>`<li>${esc(d)}</li>`).join('')}</ul>`);
+function stackBars(rows,keys,opts={}){ // rows:[{label,parts:{k:v},total,lead,dim,tip}]
+  const mx=Math.max(...rows.map(r=>r.total));
+  return rows.map(r=>{
+    const segs=keys.map(k=>{const v=r.parts[k.k]||0;const w=Math.max(0,v)/mx*100;
+      return v>0?`<div class="seg" style="width:${w}%;background:var(${k.c})" ${tipAttr(`<b>${esc(k.n)}</b> ${R(v)}<div class="m">${esc(r.label)}</div>`)}></div>`:''}).join('');
+    return `<div class="barrow" style="${r.dim?'opacity:.5':''}"><div class="nm">${r.name}</div><div class="track">${segs}</div><div class="v">${r.val}</div></div>`}).join('');
+}
+function legend(items){return `<div class="legend">${items.map(i=>`<span><i style="background:var(${i.c})"></i>${esc(i.n)}</span>`).join('')}</div>`}
+const carBtn=(id,txt)=>`<button class="carlink" data-open="${id}">${esc(txt)}</button>`;
+
+/* ---------- scatter ---------- */
+function scatter(){
+  const W=560,H=430,ml=52,mr=84,mt=14,mb=46;
+  const pts=C.res.map(r=>({r,x:r.total,y:r.Q}));
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y);
+  const st=[10000,20000,25000,50000,100000].find(k=>(Math.max(...xs)-Math.min(...xs))/k<=8)||100000;
+  const x0=Math.floor(Math.min(...xs)/st)*st-st,x1=Math.ceil(Math.max(...xs)/st)*st+st;
+  const y0=Math.max(0,Math.floor((Math.min(...ys)-.5)*2)/2),y1=Math.min(10,Math.ceil((Math.max(...ys)+.5)*2)/2);
+  const X=v=>ml+(v-x0)/(x1-x0)*(W-ml-mr),Y=v=>mt+(1-(v-y0)/(y1-y0))*(H-mt-mb);
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Custo total versus nota de qualidade">`;
+  for(let v=Math.ceil(x0/st)*st;v<=x1;v+=st)s+=`<line x1="${X(v)}" x2="${X(v)}" y1="${mt}" y2="${H-mb}" stroke="var(--grid)"/><text x="${X(v)}" y="${H-mb+16}" text-anchor="middle">${nf0.format(v/1000)}</text>`;
+  for(let v=y0;v<=y1;v+=.5)if(Number.isInteger(v))s+=`<line x1="${ml}" x2="${W-mr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--grid)"/><text x="${ml-8}" y="${Y(v)+4}" text-anchor="end">${v}</text>`;
+  s+=`<text x="${(ml+W-mr)/2}" y="${H-6}" text-anchor="middle">Custo total em ${S.g.horizonte} anos (R$ mil, valor presente) — menor é melhor →</text>`;
+  s+=`<text transform="translate(14 ${(mt+H-mb)/2}) rotate(-90)" text-anchor="middle">Nota de qualidade (sem custo)</text>`;
+  const par=pts.filter(p=>!p.r.fails.length&&!p.r.dominated).sort((a,b)=>a.x-b.x);
+  if(par.length>1)s+=`<polyline points="${par.map(p=>`${X(p.x)},${Y(p.y)}`).join(' ')}" fill="none" stroke="var(--gray)" stroke-width="2" stroke-dasharray="5 4"/>`;
+  // rótulos com anti-colisão
+  const labs=pts.map(p=>({p,cx:X(p.x),cy:Y(p.y),ly:Y(p.y)})).sort((a,b)=>a.cy-b.cy);
+  for(let i=1;i<labs.length;i++)if(Math.abs(labs[i].cx-labs[i-1].cx)<95&&labs[i].ly-labs[i-1].ly<13)labs[i].ly=labs[i-1].ly+13;
+  labs.forEach(l=>{
+    const r=l.p.r,lead=r.rank===1,out=r.fails.length;
+    const fill=lead?'var(--s1)':out?'none':(r.dominated||r.poor)?'var(--gray2)':'var(--gray)';
+    const stroke=lead?'var(--surface)':out?'var(--gray)':'var(--surface)';
+    const tip=tipAttr(`<b>${esc(r.c.curto)}</b><div class="m">${R(r.total)} em ${S.g.horizonte} anos · qualidade ${nf1.format(r.Q)} · nota geral ${nf1.format(r.overall)}</div>${out?'<div class="m">Fora dos requisitos: '+esc(r.fails.join(', '))+'</div>':r.dominated?'<div class="m">Dominado: há um carro melhor e mais barato</div>':r.poor?`<div class="m">Não compensa: ${esc(r.poorBy.c.curto)} tem +${nf1.format(r.poorBy.Q-r.Q)} de qualidade por ${r.poorBy.total>r.total?'só +'+R(r.poorBy.total-r.total):R(r.total-r.poorBy.total)+' a menos'}</div>`:''}`);
+    s+=`<g${tip} style="cursor:pointer" data-open="${r.c.id}"><circle cx="${l.cx}" cy="${l.cy}" r="16" fill="transparent"/><circle cx="${l.cx}" cy="${l.cy}" r="${lead?8:6}" fill="${fill}" stroke="${stroke}" stroke-width="2"/><text x="${l.cx+12}" y="${l.ly+4}" class="${lead?'lab':''}" ${out?'style="opacity:.6"':''}>${esc(r.c.curto)}</text></g>`;
+  });
+  return s+`</svg><div class="legend" style="margin-top:6px"><span><i style="background:var(--s1);border-radius:99px;width:9px;height:9px"></i>Líder na sua perspectiva</span><span><i style="background:var(--gray);border-radius:99px;width:9px;height:9px"></i>Concorrente</span><span><i style="background:var(--gray2);border-radius:99px;width:9px;height:9px"></i>Dominado / não compensa</span><span><i style="background:none;border:1.5px solid var(--gray);border-radius:99px;width:9px;height:9px"></i>Fora dos requisitos</span></div>`;
+}
+
+/* ---------- radar ---------- */
+function radar(list){
+  const W=740,H=480,cx=W/2,cy=H/2+4,Rr=175,n=CRIT.length,cols=['--s1','--s2','--s3','--s4'];
+  const ang=i=>-Math.PI/2+i*2*Math.PI/n,pt=(i,v)=>[cx+Math.cos(ang(i))*Rr*v/10,cy+Math.sin(ang(i))*Rr*v/10];
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:860px;display:block;margin:auto" role="img" aria-label="Radar de notas">`;
+  [2.5,5,7.5,10].forEach(v=>s+=`<polygon points="${CRIT.map((_,i)=>pt(i,v).join(',')).join(' ')}" fill="none" stroke="var(--grid)"/>`);
+  CRIT.forEach((k,i)=>{const [x,y]=pt(i,10),[lx,ly]=pt(i,11.6);s+=`<line x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="var(--grid)"/><text x="${lx}" y="${ly+4}" text-anchor="${Math.abs(lx-cx)<12?'middle':lx>cx?'start':'end'}">${esc(k.nome)}</text>`});
+  list.forEach((r,j)=>{
+    const p=CRIT.map((k,i)=>pt(i,r.sc[k.k]));
+    s+=`<polygon points="${p.map(q=>q.join(',')).join(' ')}" fill="var(${cols[j]})" fill-opacity=".14" stroke="var(${cols[j]})" stroke-width="2"/>`;
+    p.forEach((q,i)=>s+=`<circle cx="${q[0]}" cy="${q[1]}" r="9" fill="transparent" ${tipAttr(`<b>${esc(r.c.curto)}</b> · ${esc(CRIT[i].nome)}<div class="m">nota ${nf1.format(r.sc[CRIT[i].k])}</div>`)}/><circle cx="${q[0]}" cy="${q[1]}" r="3" fill="var(${cols[j]})" style="pointer-events:none"/>`);
+  });
+  return s+`</svg>`+legend(list.map((r,j)=>({n:r.c.nome,c:cols[j]})));
+}
+
+/* =====================================================================
+   RENDERIZADORES (cada um preenche [data-r=nome])
+   ===================================================================== */
+const RN={};
+const verdictOf=r=>r.fails.length?['fora','Fora dos requisitos']:r.rank<=2?['foco','Investir energia']:(r.dominated||r.poor)&&r.rank>3?['desc','Descartar']:['radar','No radar'];
+const shortNames=list=>list.map(r=>esc(r.c.curto)).join(', ');
+
+RN.verdict=()=>{
+  const ok=C.ok;if(!ok.length)return `<h2>Nenhum carro cumpre todos os requisitos</h2><p class="note">Relaxe algum filtro na aba Perspectivas.</p>`;
+  const L=ok[0],S2=ok[1],T=ok[2];
+  const rk=k=>[...ok].sort((a,b)=>b.sc[k]-a.sc[k]).findIndex(o=>o===L)+1;
+  const str=CRIT.filter(k=>k.k!=='custo'&&rk(k.k)<=2&&L.sc[k.k]>=7).sort((a,b)=>L.sc[b.k]-L.sc[a.k]).slice(0,3).map(k=>k.nome.toLowerCase());
+  const weak=CRIT.filter(k=>L.sc[k.k]<=5.5&&k.k!=='custo').sort((a,b)=>L.sc[a.k]-L.sc[b.k]).slice(0,2).map(k=>k.nome.toLowerCase());
+  const cheap=[...C.res].sort((a,b)=>a.mensal-b.mensal)[0];
+  const desc=C.res.filter(r=>verdictOf(r)[0]==='desc');
+  const dm=L.c.disp?'':` <span class="tag q">espera ${nf0.format(L.c.esperaSem)} sem</span>`;
+  return `<div class="hd"><h2>Onde investir energia</h2><span class="note">Perspectiva: <b>${esc(PRESETS[S.preset]?PRESETS[S.preset].nome:'Personalizada')}</b> · horizonte ${S.g.horizonte} anos</span></div>
+  <div class="grid g3">
+   <div><div class="note">1º lugar</div><div style="font-size:24px;font-weight:650;margin:2px 0">${carBtn(L.c.id,L.c.nome)}${dm}</div>
+     <p class="note">custo ${Dlt(L)} · nota ${nf1.format(L.overall)}${str.length?`<br>Brilha em: ${esc(str.join(', '))}.`:''}${weak.length?`<br>Atenção: ${esc(weak.join(', '))}.`:''}</p></div>
+   ${S2?`<div><div class="note">2º lugar</div><div style="font-size:20px;font-weight:650;margin:2px 0">${carBtn(S2.c.id,S2.c.nome)}</div><p class="note">custo ${Dlt(S2)} · nota ${nf1.format(S2.overall)}<br>${S2.pvHold>L.pvHold?`Custa ${R(S2.pvHold-L.pvHold)} a mais`:`Custa ${R(L.pvHold-S2.pvHold)} a menos`} que o 1º; diferença de ${nf2.format(L.overall-S2.overall)} pontos.</p></div>`:''}
+   <div><div class="note">Como ler</div><p class="note">${(()=>{const top2=ok.slice(0,2),noTD=top2.filter(o=>!o.c.testado),noDisp=top2.filter(o=>!o.c.disp),bits=[];if(noTD.length)bits.push(`${shortNames(noTD)} ainda sem test drive — a nota vem de ficha técnica`);if(noDisp.length)bits.push(`${shortNames(noDisp)} com espera pela entrega`);return bits.length?`<b>Ressalva:</b> ${bits.join('; ')}.<br>`:''})()}${desc.length?`<b>Descartáveis:</b> ${shortNames(desc)} — existe alternativa mais barata <i>e</i> melhor.<br>`:''}${T&&L.overall-T.overall<.6?`Os 3 primeiros estão a menos de 0,6 ponto: a decisão depende dos seus pesos (aba Perspectivas) e dos test drives pendentes.`:`O líder abre vantagem clara sobre o 3º colocado.`}</p></div>
+  </div>`;
+};
+RN.kpis=()=>{
+  const cheap=[...C.res].sort((a,b)=>a.pvHold-b.pvHold)[0];
+  const q=[...C.res].sort((a,b)=>b.Q-a.Q)[0],v=[...C.res].sort((a,b)=>b.vfm-a.vfm)[0];
+  const K=(l,val,sm)=>`<div class="card kpi"><div class="lab">${l}</div><div class="val">${val}</div><div class="sm">${sm}</div></div>`;
+  return K('Menor custo',R(cheap.pvHold),`${esc(cheap.c.curto)} · aquisição + IPVA, em valor presente`)+
+   K('Melhor qualidade',nf1.format(q.Q),`${esc(q.c.curto)} · nota 0–10 sem contar o custo`)+
+   K('Melhor custo-benefício',esc(v.c.curto),`${nf2.format(v.vfm)} pontos de qualidade por R$ 100 mil de custo total`);
+};
+RN.scatter=()=>scatter();
+RN.ranking=()=>{
+  const key=S.sort,list=[...C.res].sort((a,b)=>(a.fails.length-b.fails.length)||(key==='hold'?a.pvHold-b.pvHold:b[key]-a[key]));
+  const mx=key==='overall'?10:key==='Q'?10:1;
+  return `<table><thead><tr><th>#</th><th>Carro</th><th class="n">Nota</th><th class="n">Qualid.</th><th class="n"${tipAttr(`<b>Custo</b><div class="m">Aquisição (já descontado o Fusion, com taxas do parcelamento) + IPVA no horizonte, em valor presente, como diferença para o carro mais barato (que fica em R$ 0). Sem revenda, seguro nem uso — o custo total fica na aba Financeiro.</div>`)}>Custo</th><th>Veredito</th></tr></thead><tbody>`+
+  list.map((r,i)=>{const [vc,vt]=verdictOf(r);
+   return `<tr class="${r.fails.length?'dim':''}"><td>${i+1}</td><td>${carBtn(r.c.id,r.c.curto)}${!r.c.disp?` <span class="tag q" title="Espera de ${nf0.format(r.c.esperaSem)} semanas pela entrega">espera ${nf0.format(r.c.esperaSem)} sem</span>`:''}</td>
+   <td class="n"><div style="display:flex;align-items:center;gap:6px;justify-content:flex-end"><div class="bar ${r.rank===1?'lead':''}" style="width:${r.overall/10*54}px"></div>${nf1.format(r.overall)}</div></td>
+   <td class="n">${nf1.format(r.Q)}</td><td class="n"><b>${Dlt(r)}</b></td>
+   <td><span class="tag ${vc}" ${r.fails.length?tipAttr(esc(r.fails.join(', '))):''}>${vt}</span></td></tr>`}).join('')+`</tbody></table>
+   <p class="note" style="margin-top:8px">“Custo” = aquisição (já descontado o Fusion na troca) + IPVA no horizonte, em valor presente, em relação ao carro mais barato (R$ ${nf0.format(minHold())} no cartão “Menor custo”). Seguro, revisões, combustível e revenda entram no custo total, na aba Financeiro.</p>`;
+};
+RN.finds=()=>{
+  const by=id=>C.res.find(r=>r.c.id===id);
+  const fuelMax=Math.max(...C.res.map(r=>r.f.cost)),fuelMin=Math.min(...C.res.map(r=>r.f.cost));
+  const fus=fusion();
+  const ipvaSave=['h6','songpro','cs55'].map(id=>by(id)).map(r=>r.ipvaSemBeneficio-Object.values(r.ipvaAno).reduce((a,b)=>a+b,0));
+  const pays=C.res.filter(r=>r.opts.avista&&r.opts.parc).map(r=>({r,diff:r.opts.avista.pv-r.opts.parc.pv}));
+  const avistaVence=pays.filter(p=>p.diff<0).map(p=>p.r.c.curto),parcVence=pays.filter(p=>p.diff>=0).map(p=>p.r.c.curto);
+  const esp=C.res.filter(r=>r.pvEsp>0).sort((a,b)=>b.pvEsp-a.pvEsp);
+  const waitTxt=esp.length?esp.map(r=>`<b>${esc(r.c.curto)}</b>: espera de ${nf0.format(r.c.esperaSem)} semanas custa ${R(r.pvEsp)} (consertos e revisão do Fusion, gasolina extra, Fusion desvalorizando) e cai para ${nf1.format(r.sc.entrega)} na nota de entrega`).join('; ')+'. Ajuste em Financeiro › Se eu tiver que esperar.':'Nenhum carro selecionado tem espera.';
+  const F=[
+   ['1',`Com energia solar, combustível quase não entra na conta`,`Entre os 9 carros o gasto anual com combustível vai de ${R(fuelMin)} a ${R(fuelMax)}; o Fusion gastaria ~${R(fus.cost)}. O que separa os carros é preço líquido, desvalorização, seguro e IPVA — não eficiência.`],
+   ['2',`Parcelar sem juros com Selic alta rende de verdade`,`À taxa líquida de ${P(((1+S.g.selic/100*(1-S.g.ir/100))-1)*100)} a.a. e já com IOF e tarifas estimados, o parcelado vence em <b>${esc(parcVence.join(', ')||'—')}</b>; o desconto à vista de R$ 10 mil vence em <b>${esc(avistaVence.join(', ')||'—')}</b>. O H6 é o que mais ganha parcelando (18× sem juros; os R$ 10 mil de desconto valem nos dois formatos, se confirmados).`],
+   ['3',`A ficha do S06 mostra o menor porta-malas de todos`,`416 L, menor que o EX5 (428 L), que nas suas notas era o menor. Cuidado: o EX5 usa medida VDA, as outras marcas podem medir de forma diferente.`],
+   ['4',`Estepe: só o EX5 (confirmado)`,`Os outros sete rodam com kit de reparo — inclusive o CS55 PHEV, cujo estepe você viu só na versão a combustão. Nas viagens a MG, ligar o filtro “Estepe” em Perspectivas deixa só o EX5 no páreo.`],
+   ['5',`Só três carros têm IPVA reduzido — e o benefício evapora`,`H6, Song Pro e CS55 economizam ${Rk(Math.min(...ipvaSave))} a ${Rk(Math.max(...ipvaSave))} de IPVA no horizonte de ${S.g.horizonte} anos; em 2030 todos pagam 4%. Song Plus/Premium são só a gasolina na ficha, logo ficam sem o benefício.`],
+   ['6',`Memória dos bancos: só EX5, S06 e CS55`,`Nenhum BYD tem — nem o Premium de R$ 270 mil —, o H6 e o Jaecoo 7 também não. Se a memória por chave é inegociável para vocês (filtro “Memória dos bancos” em Perspectivas, ou suba o peso do domínio), 3 carros restam.`],
+   ['7',`Versão do J7: anotações dizem “Prestige”, ficha diz “Luxury”`,`Confirme se os R$ 225 mil correspondem à versão cujo equipamento está na ficha.`],
+   ['8',`Esperar pelo carro tem preço`,`${waitTxt}`],
+   ['9',`Risco de flex chegando: BYD Plus/Premium e EX5`,`Suas próprias notas apontam que a versão flex é iminente. Embuti +2 p.p. de desvalorização no 1º ano desses três; você pode zerar isso na aba Dados.`]
+  ];
+  return F.map(f=>`<div class="find"><div class="ic">${f[0]}</div><div><b>${f[1]}</b><div class="t">${f[2]}</div></div></div>`).join('');
+};
+function fusion(){
+  const u=C.u,g=C.g;const cost=(u.urban/7.5+u.long/10)*g.gas;return {cost,litros:u.urban/7.5+u.long/10};
+}
+
+/* ---------- Financeiro ---------- */
+RN.ratebox=()=>{const net=S.g.selic*(1-S.g.ir/100);return `Taxa líquida: <b>${P(net)}</b> ao ano (${nf2.format((C.res[0].r)*100)}% ao mês). R$ 100 mil aplicados rendem ~${R(net*1000)} por ano. É essa taxa que desconta o dinheiro futuro nas contas abaixo.`};
+const TK=[{k:'cap',n:'Depreciação e capital',c:'--s1'},{k:'ipva',n:'IPVA',c:'--s2'},{k:'seg',n:'Seguro',c:'--s3'},{k:'man',n:'Manutenção e pneus',c:'--s4'},{k:'comb',n:'Combustível',c:'--s5'},{k:'esp',n:'Espera (Fusion)',c:'--s6'}];
+RN.tco=()=>{
+  const list=[...C.res].sort((a,b)=>a.total-b.total),h=S.g.horizonte;
+  const rows=list.map(r=>({name:carBtn(r.c.id,r.c.curto),label:r.c.curto,parts:r.comp,total:r.total,val:`${R(r.total)}<span class="eff"> · só ter ${R(r.pvHold)}</span>`,dim:r.fails.length>0}));
+  const t=`<div class="scroll"><table style="margin-top:14px"><thead><tr><th>Carro</th><th class="n">Compra líquida</th><th class="n">IPVA</th><th class="n">= Só ter</th><th class="n">Seguro</th><th class="n">Manut.+pneus</th><th class="n">Combust.</th><th class="n">Espera</th><th class="n">− Revenda</th><th class="n">= Custo total</th></tr></thead><tbody>`+
+   list.map(r=>`<tr><td>${carBtn(r.c.id,r.c.curto)}</td><td class="n">${R(r.pay.pv)}</td><td class="n">${R(r.pvIpva)}</td><td class="n"><b>${R(r.pvHold)}</b></td><td class="n">${R(r.pvIns)}</td><td class="n">${R(r.pvMan)}</td><td class="n">${R(r.pvFuel)}</td><td class="n">${r.pvEsp?R(r.pvEsp):'—'}</td><td class="n">${R(-r.pvResale)}</td><td class="n"><b>${R(r.total)}</b></td></tr>`).join('')+`</tbody></table></div>`;
+  return legend(TK)+stackBars(rows,TK)+`<p class="note" style="margin-top:8px">Barras e tabela em valor presente (VP) para ${h} anos. “Depreciação e capital” = compra menos revenda, já com o que o dinheiro deixaria de render. Só ter = aquisição (já descontado o Fusion, com taxas do parcelamento) + IPVA; Custo total = Só ter + seguro, revisões, pneus, combustível e espera − revenda. Por isso o total pode ficar abaixo do “só ter” quando a revenda é alta (horizontes curtos).</p>`+t;
+};
+RN.pay=()=>{
+  return `<table><thead><tr><th>Carro</th><th class="n">À vista (VP)</th><th class="n">Parcelado (VP)</th><th>Vence</th><th class="n">Taxas</th><th class="n">Caixa hoje</th><th class="n">Parcela</th></tr></thead><tbody>`+
+  C.res.map(r=>{const a=r.opts.avista,p=r.opts.parc,d=a&&p?a.pv-p.pv:null;
+   return `<tr><td>${carBtn(r.c.id,r.c.curto)}</td><td class="n ${r.best==='avista'&&p?'best':''}">${a?R(a.pv):'—'}</td><td class="n ${r.best==='parc'?'best':''}">${p?R(p.pv):'só à vista'}</td>
+   <td>${d==null?'<span class="note">única opção</span>':d<0?`À vista <span class="eff">(${Rk(-d)})</span>`:`Parcelado <span class="eff">(${Rk(d)})</span>`}</td>
+   <td class="n" ${p?tipAttr(`IOF ${R(p.iof)} + tarifas/registro ${R(p.tarifas)}`):''}>${p?R(p.fees):'—'}</td><td class="n">${R(r.pay.hoje)}</td><td class="n">${r.pay.n?`${r.pay.n}× ${R(r.pay.parcela)}`:'—'}</td></tr>`}).join('')+
+  `</tbody></table><p class="note" style="margin-top:8px">VP = compra líquida do Fusion, já com as taxas do parcelamento (IOF + tarifas/registro do contrato, pagos no ato). Entrada em % do preço financiado, e o Fusion conta como parte da entrada. Parcelas mensais a partir de 30 dias.</p>`;
+};
+RN.resale=()=>{
+  const M=Math.round(S.g.horizonte*12);
+  const rows=[...C.res].sort((a,b)=>b.resale-a.resale).map(r=>({name:carBtn(r.c.id,r.c.curto),label:r.c.curto,parts:{v:r.resale,l:Math.max(0,r.mercado-r.resale)},total:r.mercado,val:`${Rk(r.resale)} <span class="eff">(−${nf0.format((1-r.resale/r.mercado)*100)}%)</span>`,dim:r.fails.length>0}));
+  return legend([{n:`Vale em ${S.g.horizonte} anos`,c:'--s1'},{n:'Perda de valor',c:'--gray2'}])+stackBars(rows,[{k:'v',n:`Vale em ${S.g.horizonte} anos`,c:'--s1'},{k:'l',n:'Perda de valor',c:'--gray2'}])+
+  `<p class="note" style="margin-top:8px">Base: preço de rua (tabela − descontos da promoção). Descontos extras que você negociar não elevam o valor de revenda.</p>`;
+};
+RN.ipva=()=>{
+  const ys=new Set();C.res.forEach(r=>Object.keys(r.ipvaAno).forEach(y=>ys.add(+y)));const Y=[...ys].sort();
+  return `<table><thead><tr><th>Carro</th>${Y.map(y=>`<th class="n">${y}</th>`).join('')}<th class="n">Total</th><th class="n">Economia</th></tr></thead><tbody>`+
+  C.res.map(r=>{const tot=Object.values(r.ipvaAno).reduce((a,b)=>a+b,0);
+   return `<tr><td>${carBtn(r.c.id,r.c.curto)} ${r.c.ipvaRed?'<span class="tag foco">reduzido</span>':''}</td>${Y.map(y=>`<td class="n">${r.ipvaAno[y]==null?'—':nf0.format(r.ipvaAno[y])}</td>`).join('')}<td class="n"><b>${nf0.format(tot)}</b></td><td class="n">${r.c.ipvaRed?Rk(r.ipvaSemBeneficio-tot):'—'}</td></tr>`}).join('')+`</tbody></table><p class="note" style="margin-top:8px">2026 é proporcional (${13-10} meses; CS55 só 2). Anos finais: proporcional ao tempo de posse.</p>`;
+};
+RN.robust=()=>{
+  const H=[3,5,7],D=[.75,1,1.25],cols=[];H.forEach(h=>D.forEach(d=>cols.push({h,d})));
+  const ranks=cols.map(cl=>{const c=compute({...S.g,horizonte:cl.h,depMult:cl.d});const ok=c.res.filter(r=>!r.fails.length).sort((a,b)=>b.overall-a.overall);const m={};ok.forEach((r,i)=>m[r.c.id]=i+1);return m});
+  const heat=n=>n===1?'background:var(--s1);color:#fff;font-weight:700':n<=3?'background:color-mix(in srgb,var(--s1) 22%,var(--surface));font-weight:600':'';
+  return `<table><thead><tr><th rowspan="2">Carro</th>${H.map(h=>`<th colspan="3" style="text-align:center">${h} anos</th>`).join('')}</tr><tr>${cols.map(cl=>`<th class="n" style="text-align:center">desv. ×${cl.d}</th>`).join('')}</tr></thead><tbody>`+
+  C.res.map(r=>`<tr class="${r.fails.length?'dim':''}"><td>${carBtn(r.c.id,r.c.curto)}</td>${ranks.map(m=>`<td class="n" style="text-align:center;${m[r.c.id]?heat(m[r.c.id]):''}">${m[r.c.id]||'—'}º</td>`).join('')}</tr>`).join('')+`</tbody></table>`;
+};
+
+/* ---------- Perspectivas ---------- */
+RN.permRank=()=>{
+  const list=[...C.res].sort((a,b)=>(a.fails.length-b.fails.length)||b.overall-a.overall);
+  return list.map(r=>`<div class="barrow" style="${r.fails.length?'opacity:.5':''}"><div class="nm">${carBtn(r.c.id,r.c.curto)}</div><div class="track"><div class="seg" style="width:${r.overall/10*100}%;background:${r.rank===1?'var(--s1)':'var(--gray)'};border-radius:0 4px 4px 0" ${tipAttr(`<b>${esc(r.c.curto)}</b><div class="m">nota geral ${nf2.format(r.overall)}</div>`)}></div></div><div class="v">${nf2.format(r.overall)}</div></div>`).join('');
+};
+RN.matrix=()=>{
+  const list=[...C.res].sort((a,b)=>(a.fails.length-b.fails.length)||b.overall-a.overall);
+  const bg=v=>`background:color-mix(in srgb,var(--heat-hi) ${clamp(v,0,10)*10}%,var(--heat-lo))`;
+  return `<table class="heat"><thead><tr><th class="l">Carro</th>${CRIT.map(k=>`<th${critTip(k)} style="cursor:help">${esc(k.nome)}<div class="eff">peso ${nf0.format(S.w[k.k])}</div></th>`).join('')}<th>Nota geral</th></tr></thead><tbody>`+
+  list.map(r=>`<tr class="${r.fails.length?'dim':''}"><td>${carBtn(r.c.id,r.c.curto)}</td>${CRIT.map(k=>{
+     const v=r.sc[k.k],title=scoreTip(r,r.c.id,k.k),ov=isOverride(r,r.c.id,k.k);
+     return k.k==='custo'||k.k==='rampa'?`<td class="c" ${tipAttr(title)}><span class="auto" style="display:inline-block;width:54px;padding:6px 2px;border-radius:6px;font-weight:600;${bg(v)}">${nf1.format(v)}</span></td>`
+     :`<td class="c"><input type="number" min="0" max="10" step=".5" value="${+v.toFixed(1)}" data-s="${r.c.id}|${k.k}" style="${bg(v)};${ov?'outline:2px solid var(--s2)':''}" ${tipAttr(title)}></td>`}).join('')}<td class="c"><b>${nf1.format(r.overall)}</b></td></tr>`).join('')+`</tbody></table>`;
+};
+
+/* ---------- Comparador ---------- */
+const YES='<span class="cellyes">✓</span>',NO='<span class="cellno">✗</span>',UNK='<span class="cellq" title="não consta na ficha">?</span>';
+RN.check=()=>{
+  const sel=C.res.filter(r=>S.sel.includes(r.c.id));
+  const row=(n,f)=>`<tr><td>${n}</td>${sel.map(r=>`<td style="text-align:center">${f(r)}</td>`).join('')}</tr>`;
+  const b=v=>v===true?YES:v===false?NO:UNK;
+  return `<table class="sticky1"><thead><tr><th>Item</th>${sel.map(r=>`<th style="text-align:center">${carBtn(r.c.id,r.c.curto)}</th>`).join('')}</tr></thead><tbody>`+
+   row('Memória dos bancos',r=>b(r.c.s.memoria))+row('Estepe',r=>b(r.c.s.estepe))+row('Tração integral',r=>/AWD/.test(r.c.s.tracao)?YES:NO)+row('Head-up display',r=>b(r.c.s.hud))+row('Alerta de ponto cego',r=>b(r.c.s.bsd))+
+   row('Flex + IPVA reduzido',r=>b(r.c.ipvaRed))+row('Entrega imediata',r=>b(r.c.disp))+row('Espera (semanas)',r=>r.c.esperaSem>0?nf0.format(r.c.esperaSem):'0')+
+   row('Vão livre',r=>r.c.s.vao?r.c.s.vao+' mm':UNK)+row('Ângulo estimado (rampa)',r=>r.ang?nf1.format(r.ang)+'°':UNK)+row('Comprimento',r=>nf0.format(r.c.s.comp)+' mm')+`</tbody></table>`;
+};
+RN.specs=()=>{
+  const sel=C.res.filter(r=>S.sel.includes(r.c.id));
+  const num=(lab,get,hi,fmt)=>{const vals=sel.map(r=>get(r));const ok=vals.filter(v=>v!=null);const best=ok.length?(hi?Math.max(...ok):Math.min(...ok)):null;
+    return `<tr><td>${lab}</td>${sel.map((r,i)=>{const v=vals[i];return `<td class="n ${v!=null&&v===best&&ok.length>1?'best':''}">${v==null?'<span class="eff">n/d</span>':fmt(v)}</td>`}).join('')}</tr>`};
+  const txt=(lab,get)=>`<tr><td>${lab}</td>${sel.map(r=>`<td>${esc(get(r)??'n/d')}</td>`).join('')}</tr>`;
+  const grp=t=>`<tr><td class="grp" colspan="${sel.length+1}">${t}</td></tr>`;
+  const n0=v=>nf0.format(v),n1=v=>nf1.format(v),ms=r=>r.c.s;
+  return `<table><thead><tr><th>Item</th>${sel.map(r=>`<th class="n">${carBtn(r.c.id,r.c.curto)}</th>`).join('')}</tr></thead><tbody>`+
+  grp('Oferta')+num('Preço de tabela',r=>r.c.preco,false,R)+num('Preço de rua (com promoções)',r=>r.mercado,false,R)+num('Fusion na troca',r=>r.troca,true,R)+num('Só ter o carro (aquisição + IPVA, VP)',r=>r.pvHold,false,R)+num('Custo total (VP)',r=>r.total,false,R)+
+  grp('Desempenho')+num('Potência combinada (cv)',r=>ms(r).pot,true,n0)+num('Torque combinado (Nm)',r=>ms(r).torque,true,n0)+num('0–100 km/h (s)',r=>ms(r).acel,false,n1)+txt('Tração',r=>ms(r).tracao)+txt('Motor',r=>ms(r).motor)+num('Peso (kg)',r=>ms(r).peso,false,n0)+
+  grp('Bateria e energia')+num('Bateria (kWh)',r=>ms(r).bat,true,n1)+num('Autonomia elétrica (km)',r=>ms(r).ev,true,n0)+num('Recarga DC (kW)',r=>ms(r).dc,true,n0)+txt('Consumo',r=>ms(r).consumo)+num('Tanque (l)',r=>ms(r).tanque,true,n0)+
+  grp('Dimensões')+num('Comprimento (mm)',r=>ms(r).comp,false,n0)+num('Largura (mm)',r=>ms(r).larg,false,n0)+num('Entre-eixos (mm)',r=>ms(r).entre,true,n0)+num('Vão livre (mm)',r=>ms(r).vao,true,n0)+num('Porta-malas (l)',r=>ms(r).mala,true,n0)+txt('Pneus',r=>ms(r).pneus)+
+  grp('Segurança e tecnologia')+txt('Pacote ADAS',r=>ms(r).adas)+txt('Câmeras',r=>ms(r).cam)+txt('Airbags',r=>ms(r).airbags)+txt('Tela / painel',r=>`${ms(r).tela} / ${ms(r).cluster}`)+txt('Som',r=>ms(r).som)+
+  grp('Conforto')+txt('Ar-condicionado',r=>ms(r).zonas)+txt('Bancos',r=>ms(r).ventil)+txt('Garantia',r=>ms(r).garantia)+`</tbody></table>`;
+};
+RN.radar=()=>{const list=C.res.filter(r=>S.sel.includes(r.c.id)).slice(0,4);return list.length?radar(list):'<p class="note">Selecione ao menos um carro.</p>'};
+
+/* ---------- Nossa vida ---------- */
+RN.kmchart=()=>{
+  const u=C.u,cols=['--s1','--s2','--s3','--s4','--s5','--s6'];
+  const seg=u.cats.map((c,i)=>`<div class="seg" style="width:${c.km/u.total*100}%;background:var(${cols[i]})" ${tipAttr(`<b>${esc(c.nome)}</b> ${nf0.format(c.km)} km<div class="m">${nf0.format(c.km/u.total*100)}% do total</div>`)}></div>`).join('');
+  return `<div class="kpi"><div class="val">${nf0.format(u.total)} km/ano</div><div class="sm">${nf0.format(u.urban)} km urbanos (${nf0.format(u.urban/u.total*100)}%) · ${nf0.format(u.long)} km em viagens</div></div>
+  <div style="display:flex;gap:2px;height:28px;margin:12px 0">${seg}</div>`+
+  `<table><tbody>`+u.cats.map((c,i)=>`<tr><td><i style="display:inline-block;width:12px;height:8px;border-radius:2px;background:var(${cols[i]});margin-right:8px"></i>${esc(c.nome)}</td><td class="n">${nf0.format(c.km)} km</td><td class="n">${nf0.format(c.km/u.total*100)}%</td></tr>`).join('')+`</tbody></table>
+  <p class="note" style="margin-top:8px">Referência: o Fusion fez 88 mil km em ~8,5 anos (≈ 10 mil km/ano). Hoje a rotina da escola pesa bem mais.</p>`;
+};
+RN.energy=()=>{
+  const fus=fusion(),rows=[...C.res].sort((a,b)=>a.f.cost-b.f.cost).map(r=>({name:carBtn(r.c.id,r.c.curto),label:r.c.curto,parts:{c:r.f.cost},total:Math.max(fus.cost,1),val:`${R(r.f.cost)}<span class="eff">/ano</span>`,dim:false}));
+  rows.push({name:'<span class="note">Fusion (referência)</span>',label:'Fusion',parts:{c:fus.cost},total:fus.cost,val:`${R(fus.cost)}<span class="eff">/ano</span>`});
+  const bars=stackBars(rows,[{k:'c',n:'Combustível por ano',c:'--s5'}]).replace(/background:var\(--s5\)/g,'background:var(--gray)');
+  const barsFixed=bars.replace(/(<div class="nm"><span class="note">Fusion[\s\S]*?<div class="seg" style=")[^"]*/,'$1width:100%;background:var(--s2)');
+  return `<div class="grid g2"><div>${barsFixed}<p class="note" style="margin-top:8px">Gasolina R$ ${nf2.format(S.g.gas)}/l, etanol R$ ${nf2.format(S.g.etanol)}/l. Fusion: ~7,5 km/l na cidade e 10 km/l na estrada (estimativa).</p></div>
+  <div class="scroll"><table><thead><tr><th>Carro</th><th class="n">Autonomia real</th><th class="n">Km na bateria</th><th class="n">Litros/ano</th><th>Combustível</th></tr></thead><tbody>`+
+  C.res.map(r=>`<tr><td>${carBtn(r.c.id,r.c.curto)}</td><td class="n">${nf0.format(r.f.evR)} km${r.c.evSrc.startsWith('estim')?'*':''}</td><td class="n">${nf0.format(r.f.evShare*100)}%</td><td class="n">${nf0.format(r.f.litros)}</td><td>${r.f.fuel}</td></tr>`).join('')+`</tbody></table><p class="note">* estimada. Consumo em modo híbrido: ${C.res.map(r=>esc(r.c.curto)+' '+r.c.kmlG).join(' · ')} km/l (gasolina; “estimado” onde a ficha não traz o número).</p></div></div>`;
+};
+RN.ramp=()=>{
+  const list=[...C.res].sort((a,b)=>(b.ang??0)-(a.ang??0)),mx=18,min=10;
+  const pos=v=>(v-min)/(mx-min)*100;
+  const ref=[[12.4,'não entrava','--bad'],[12.8,'raspou','--warn'],[14.7,'entrou','--good']];
+  return `<div style="position:relative">`+list.map(r=>{
+    return `<div class="barrow" style="grid-template-columns:minmax(100px,140px) 1fr 84px"><div class="nm">${carBtn(r.c.id,r.c.curto)}</div><div class="track" style="display:block;position:relative;height:22px;background:linear-gradient(90deg,transparent 0,transparent 100%)">
+     ${r.ang?`<div style="position:absolute;left:0;top:3px;height:16px;width:${pos(r.ang)}%;background:${r.ang>=14.7?'var(--s1)':'var(--gray)'};border-radius:0 4px 4px 0" ${tipAttr(`<b>${esc(r.c.curto)}</b><div class="m">vão ${r.c.s.vao} mm · entre-eixos ${r.c.s.entre} mm → ${nf1.format(r.ang)}°</div>`)}></div>`:`<div class="eff" style="padding-top:3px">vão livre não informado na ficha</div>`}
+     ${ref.map(x=>`<div style="position:absolute;left:${pos(x[0])}%;top:0;bottom:0;border-left:2px dashed var(${x[2]})"></div>`).join('')}</div><div class="v">${r.ang?nf1.format(r.ang)+'°':'?'} <span class="eff">${r.c.s.vao?r.c.s.vao+' mm':''}</span></div></div>`}).join('')+`</div>
+  <div class="legend" style="margin-top:8px"><span style="color:var(--bad)">┆ 12,4° não entrava</span><span style="color:var(--warn)">┆ 12,8° raspou</span><span style="color:var(--good)">┆ 14,7° entrou</span></div>
+  <p class="note">Eixo das barras começa em 10°. As três linhas são as suas referências de outros carros (ângulo oficial). Como a estimativa é geométrica, trate 1–2° de folga. Suspensão carregada com a família também reduz o vão: se o ângulo oficial de algum finalista não passar de 14,7°, meça a rampa antes de assinar.</p>`;
+};
+RN.fit=()=>{
+  return `<table><thead><tr><th>Carro</th><th class="n">Comprimento</th><th class="n">Porta-malas</th><th>Câmera</th><th>Memória</th></tr></thead><tbody>`+
+  [...C.res].sort((a,b)=>a.c.s.comp-b.c.s.comp).map(r=>`<tr><td>${carBtn(r.c.id,r.c.curto)}</td><td class="n">${nf0.format(r.c.s.comp)} mm</td><td class="n">${r.c.s.mala} l</td><td>${esc(r.c.s.cam)}</td><td>${r.c.s.memoria?YES:NO}</td></tr>`).join('')+`</tbody></table>
+  <p class="note" style="margin-top:8px">Sua esposa ganha confiança devagar: carros mais curtos, com câmera 360°/540° e memória de bancos (posição certa ao abrir a porta) ajudam. ACC ela não usa — não pese muito o pacote semiautônomo para ela.</p>`;
+};
+
+/* ---------- Negociação ---------- */
+function priceToTie(id){
+  const lead=C.ok[0];if(!lead||lead.c.id===id) return null;
+  const f=cut=>{const c=compute(S.g,{[id]:cut});return c.res.find(r=>r.c.id===id).overall-c.res.find(r=>r.c.id===lead.c.id).overall};
+  if(f(0)>=0) return 0;
+  if(f(80000)<0) return Infinity;
+  let a=0,b=80000;for(let i=0;i<22;i++){const m=(a+b)/2;f(m)>=0?b=m:a=m}return b;
+}
+RN.negtable=()=>{
+  const lead=C.ok[0];
+  return `<table><thead><tr><th>Carro</th><th class="n">Preço hoje</th><th class="n">Custo total (VP)</th><th class="n">Nota</th><th class="n">Desconto p/ empatar com ${lead?esc(lead.c.curto):'—'}</th><th class="n">Desconto ouvido</th></tr></thead><tbody>`+
+  [...C.res].sort((a,b)=>b.overall-a.overall).map(r=>{const t=r.fails.length?null:priceToTie(r.c.id);
+   const txt=r.fails.length?'<span class="tag fora">fora dos requisitos</span>':lead&&r.c.id===lead.c.id?'<span class="tag foco">líder</span>':t===0?'já empata':t===Infinity?'<span class="note">não fecha só com preço</span>':`<b>${R(t)}</b> <span class="eff">(${nf1.format(t/r.c.preco*100)}% do preço)</span>`;
+   return `<tr class="${r.fails.length?'dim':''}"><td>${carBtn(r.c.id,r.c.curto)}</td><td class="n">${R(r.fin)}</td><td class="n">${R(r.total)}</td><td class="n">${nf2.format(r.overall)}</td><td class="n">${txt}</td><td class="n"><input type="number" step="1000" min="0" style="width:96px" value="${r.c.descExtra||0}" data-c="${r.c.id}|descExtra"></td></tr>`}).join('')+`</tbody></table>
+  <p class="note" style="margin-top:8px">Cada R$ 10 mil de desconto tira até R$ 10 mil do custo total (um pouco menos se você parcelar, porque a parcela adiada já rende). Melhorar a troca do Fusion tem o mesmo efeito: edite “Fusion na troca” na aba Dados.</p>`;
+};
+const TODOS=[
+ ['t1','Test drive do Song Premium AWD — único com tração integral e potência para MG'],
+ ['t2','Reservar/pré-vender e fazer test drive do CS55 em novembro/2026'],
+ ['t3','Medir a rampa de acesso (perfil e altura) e comparar com o ângulo de transposição oficial dos finalistas'],
+ ['t4','Pedir o ângulo de transposição oficial dos finalistas (a estimativa do painel usa vão livre e entre-eixos)'],
+ ['t6','Cobrar do vendedor do Song Premium a “oferta melhor” — com números por escrito'],
+ ['t7','Cobrar do vendedor do EX5 a nova oferta prometida e o preço/data da versão flex'],
+ ['t8','H6: confirmar por escrito os R$ 10 mil (também no parcelado), a entrega em ~20 dias, e refazer o test drive no molhado com atenção ao controle de tração'],
+ ['t9','Song Plus: pedir mais que R$ 20 mil de desconto, deixando a abertura do vendedor explícita'],
+ ['t10','Levar o Fusion para uma 2ª e 3ª avaliação (a de R$ 60 mil de vários carros é apenas um palpite)'],
+ ['t11','Confirmar versão do J7: “Prestige” (anotações) ou “Luxury” (ficha)'],
+ ['t12','Fazer test drive do S06 (nunca dirigido) se ele seguir no páreo'],
+ ['t13','EX5: perguntar ao vendedor se o alarme de velocidade do leitor de placas pode ser desligado de vez (os vídeos dizem que reativa a cada partida) e se há OTA'],
+ ['t14','Song Premium: confirmar a cor interna em estoque (a ficha lista Blue and Grey e Black & Brown) e se o CarPlay é sem fio'],
+ ['t15','Cintos dianteiros: conferir a regulagem de altura em cada finalista, com 186 cm e 160 cm (os vídeos dizem que só o Song tem; as fichas não citam)'],
+ ['t16','EX5: garantia de 6 anos por escrito e a assistência técnica mais próxima de Campinas'],
+ ['t17','EX5: testar subida longa com bateria baixa (motor aspirado de 100 cv) e o comportamento no molhado; rodar o follow-up no NotebookLM'],
+ ['t18','H6: testar o ar-condicionado só pela tela dirigindo, e o modo Neve no molhado'],
+ ['t19','Rodar o prompt 11 no NotebookLM (consumo e autonomia medidos) e comparar com o Inmetro']
+];
+function renderTodos(){const el=document.getElementById('todos');el.innerHTML=TODOS.map(t=>`<label class="todo ${S.todo[t[0]]?'done':''}"><input type="checkbox" data-todo="${t[0]}" ${S.todo[t[0]]?'checked':''}><span>${esc(t[1])}</span></label>`).join('')}
+RN.sellers=()=>C.res.map(r=>`<div style="padding:8px 0;border-bottom:1px solid var(--grid)"><b>${carBtn(r.c.id,r.c.curto)}</b> ${r.c.trocaAval?`<span class="eff">troca avaliada: ${Rk(r.c.troca)}</span>`:'<span class="tag q">troca assumida</span>'}<div class="note">${esc(r.c.seller)}</div></div>`).join('');
+
+/* ---------- Dados ---------- */
+function renderDados(){
+  const f=[['preco','Preço tabela'],['troca','Fusion na troca'],['descBranco','Desc. branco'],['descAvista','Desc. à vista'],['ent','Entrada %'],['n','Parcelas'],['d1','Desv. 1º ano %'],['d','Desv. anos seguintes %'],['pneu','Jogo de pneus'],['kmlG','km/l gasolina (híbrido)'],['esperaSem','Espera (semanas)']];
+  const cars=CARS();
+  document.getElementById('dadosTable').innerHTML=`<table><thead><tr><th>Carro</th>${f.map(x=>`<th class="n">${x[1]}</th>`).join('')}<th>IPVA reduzido</th></tr></thead><tbody>`+cars.map(c=>{
+   const cell=(k)=>{
+    let v,attr=`data-c="${c.id}|${k}"`;
+    if(k==='ent'){if(!c.parc)return `<td class="n eff">só à vista</td>`;v=c.parc.ent*100}
+    else if(k==='n'){if(!c.parc)return `<td class="n eff">—</td>`;v=c.parc.n}
+    else if(k==='d1'||k==='d')v=c[k]*100; else v=c[k];
+    return `<td class="n"><input type="number" style="width:${k==='kmlG'||k==='d1'||k==='d'||k==='n'||k==='ent'||k==='esperaSem'?70:100}px" step="${k==='kmlG'?.1:k==='esperaSem'?1:k==='d1'||k==='d'||k==='ent'||k==='n'?1:1000}" value="${Math.round(v*100)/100}" ${attr}></td>`};
+   return `<tr><td>${carBtn(c.id,c.curto)}</td>${f.map(x=>cell(x[0])).join('')}<td style="text-align:center"><input type="checkbox" data-c="${c.id}|ipvaRed" ${c.ipvaRed?'checked':''}></td></tr>`}).join('')+`</tbody></table>`;
+  document.getElementById('assumptions').innerHTML=[
+   ['Fusion','Cada loja compra o Fusion pelo valor das suas notas; onde não houve avaliação, R$ 60 mil. Os R$ 17,3 mil de débito de manutenção do Fusion (funilaria, pneus, óleo PTU/câmbio, freios, revisão) não entram no custo dos novos: presumo que já estão no valor de troca.'],
+   ['Entrada','Percentual de entrada calculado sobre o valor financiado (tabela − desconto do branco), e o Fusion conta como parte da entrada. Parcelas começam 30 dias depois. Onde só consta “à vista”, não há parcelamento.'],
+   ['Desconto branco/à vista','Song Plus/Premium: −R$ 10 mil à vista e −R$ 10 mil na cor branca (o do branco vale também parcelado). O “preço de rua” usado para depreciar é a tabela menos essas promoções.'],
+   ['IPVA','Alíquota 4% (SP), reduzida para híbridos flex abaixo de R$ 261 mil: 0% em 2026, 1% (2027), 2% (2028), 3% (2029), 4% depois. 2026 proporcional a 3 meses (2 para o CS55). Base = valor de mercado no início de cada ano.'],
+   ['Depreciação','Perda no 1º ano e a cada ano seguinte, mais forte para marcas novas ou com ano-modelo antigo — meu julgamento cruzado com suas notas sobre a força de cada marca. É a premissa que mais mexe no resultado: use o multiplicador na aba Financeiro.'],
+   ['Taxas do parcelamento','“Sem juros” não é sem custo: estimei IOF (0,38% + 0,0082% ao dia sobre cada parcela, teto de 365 dias — confira a alíquota vigente) e R$ 1,5 mil de tarifas/registro do contrato, pagos no ato da compra. Ambos editáveis em Financeiro. O preço embutido (parcelado é mais caro que à vista) já estava na conta.'],
+   ['Espera pelo carro','Cada carro tem uma espera em semanas (CS55: 9, pela chegada só em novembro/2026; os outros: 0). Se a espera passar do limite definido em Financeiro (padrão: 8 semanas), entram revisão e freios do Fusion por inteiro; abaixo dele a manutenção custa zero. Também entram, se a espera passar do tempo que os pneus ainda duram, um jogo novo, mais gasolina extra, seguro do Fusion e desvalorização dele. Além do custo, a espera reduz a nota de “Prazo de entrega” em 0,7 ponto por semana.'],
+   ['Energia','Recarga em casa custa zero (solar; o custo das placas não entra). Combustível apenas nos km que a bateria não cobre: viagens longas, excesso de Valinhos e 5% de esquecimento de carregar. Escolho o mais barato entre etanol e gasolina nos flex.'],
+   ['Seguro e manutenção','Seguro 4% do valor de mercado por ano; revisões R$ 2 mil/ano (+R$ 1,5 mil/ano depois da garantia); pneus conforme o aro e a quilometragem (40 mil km por jogo).'],
+   ['Valor presente','Todo fluxo é descontado à taxa líquida da Selic (13,75% − 15% de IR). “Só ter o carro” = aquisição líquida do Fusion (com taxas do parcelamento) + IPVA, sem revenda; “Custo total” soma seguro, revisões, pneus, combustível e espera e subtrai a revenda. Os dois são valores presentes no horizonte escolhido. Internamente, a nota de custo ainda usa o equivalente mensal (prestação constante de mesmo VP) — é o controle “R$/mês por ponto perdido” em Perspectivas.'],
+   ['Notas','As notas 0–10 misturam ficha técnica e suas anotações de test drive; as justificativas aparecem ao passar o mouse na matriz. Onde você não dirigiu (Premium, S06, CS55), a nota é de ficha. Vão livre ausente = nota neutra. Memória dos bancos e estepe são binários: tem = 10, não tem = 0.']
+  ].map(a=>`<div class="find"><div class="ic">i</div><div><b>${a[0]}</b><div class="t">${a[1]}</div></div></div>`).join('');
+}
+
+/* ---------- dossiê ---------- */
+function openCar(id){
+  const r=C.res.find(x=>x.c.id===id),c=r.c;
+  document.getElementById('dlgHead').innerHTML=`<h2>${esc(c.nome)}</h2><div class="note">${esc(c.ano)} · ${c.flex?'flex':'gasolina'} · ${c.s.tracao} · ${c.s.pot?nf0.format(c.s.pot)+' cv':'potência n/d'} ${!c.disp?`· <span class="tag q">${esc(c.dispNota||'')} espera ${nf0.format(c.esperaSem)} sem</span>`:''}</div>`;
+  const kp=(l,v,s)=>`<div class="card kpi"><div class="lab">${l}</div><div class="val" style="font-size:24px">${v}</div><div class="sm">${s}</div></div>`;
+  document.getElementById('dlgBody').innerHTML=`
+   <div class="grid gk">${kp('Só ter o carro',R(r.pvHold),'aquisição + IPVA (VP)')}${kp('Custo total',R(r.total),`com seguro, uso e revenda (VP) · #${r.rank<99?r.rank:'—'} na sua perspectiva`)}${kp('Revenda estimada',Rk(r.resale),`em ${S.g.horizonte} anos (−${nf0.format((1-r.resale/r.mercado)*100)}%)`)}${kp('Nota geral',nf1.format(r.overall),`qualidade ${nf1.format(r.Q)}`)}</div>
+   ${r.fails.length?`<div class="callout warn">Fora dos seus requisitos: ${esc(r.fails.join(', '))}.</div>`:''}
+   <div class="grid g2"><div><h3>Pontos fortes</h3><ul class="pc pro">${c.pro.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div><div><h3>Pontos de atenção</h3><ul class="pc con">${c.con.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div></div>
+   <div><h3>A verificar</h3><ul class="pc">${c.pend.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+   <div><h3>Notas e justificativas</h3><div class="scroll"><table><thead><tr><th>Critério</th><th class="n">Final</th><th class="n">Anotações</th><th class="n">Especialistas</th><th class="n">Ficha</th><th>Motivos</th></tr></thead><tbody>${CRIT.map(k=>{const p=parts(r,id,k.k),f=v=>v==null?'—':nf1.format(v);return `<tr><td>${esc(k.nome)}</td><td class="n"><b>${nf1.format(r.sc[k.k])}</b></td><td class="n">${p.auto?'—':f(p.n)}</td><td class="n">${p.auto?'—':f(p.e)}</td><td class="n">${f(p.f)}</td><td class="note">${p.auto?esc(p.ft):[p.nt?'<b>Anotações:</b> '+esc(p.nt):'',p.et?'<b>Especialistas:</b> '+esc(p.et):'',p.ft?'<b>Ficha:</b> '+esc(p.ft):''].filter(Boolean).join('<br>')}</td></tr>`}).join('')}</tbody></table></div></div>
+   <div><h3>Composição do custo (${S.g.horizonte} anos, valor presente)</h3>${legend(TK)}${stackBars([{name:'',label:c.curto,parts:r.comp,total:r.total,val:R(r.total)}],TK)}</div>
+   <div class="note">Garantia: ${esc(c.garNota)}. Consumo em híbrido: ${c.kmlG} km/l (${esc(c.kmlSrc)}). Autonomia elétrica: ${c.ev} km (${esc(c.evSrc)}).</div>`;
+  const d=document.getElementById('dlg');if(!d.open)d.showModal();
+}
+
+/* =====================================================================
+   ORQUESTRAÇÃO
+   ===================================================================== */
+const TABS=[['visao','Visão geral'],['fin','Financeiro'],['perf','Perspectivas'],['comp','Comparador'],['vida','Nossa vida'],['neg','Negociação'],['dados','Dados']];
+const RENDER_BY_TAB={visao:['verdict','kpis','scatter','ranking','finds'],fin:['ratebox','tco','pay','resale','ipva','robust'],perf:['permRank','matrix'],comp:['check','specs','radar'],vida:['kmchart','energy','ramp','fit'],neg:['negtable','sellers'],dados:[]};
+function refresh(skip){
+  C=compute();
+  RENDER_BY_TAB[S.tab].forEach(n=>{if(n===skip)return;const el=document.querySelector(`#tab-${S.tab} [data-r="${n}"]`);if(el)el.innerHTML=RN[n]()});
+  document.querySelectorAll('[data-bind]').forEach(el=>{const [a,b]=el.dataset.bind.split('.');const v=(a==='g'?S.g:S.flt)[b];el.textContent=FMT[el.dataset.fmt](+v)});
+  if(S.tab==='neg')renderTodos();
+}
+function syncInputs(){
+  document.querySelectorAll('[data-g]').forEach(el=>{const v=S.g[el.dataset.g];if(el.type==='checkbox'){el.checked=!!v;el.parentElement.classList.toggle('on',!!v)}else el.value=v});
+  document.querySelectorAll('[data-w]').forEach(el=>{el.value=S.w[el.dataset.w];const o=document.getElementById('wo-'+el.dataset.w);if(o)o.textContent=S.w[el.dataset.w]});
+  document.querySelectorAll('[data-f]').forEach(el=>{el.value=S.flt[el.dataset.f]});
+  document.querySelectorAll('#fltChips input').forEach(el=>{el.checked=!!S.flt[el.dataset.fc];el.parentElement.classList.toggle('on',el.checked)});
+  document.getElementById('sortSel').value=S.sort;document.getElementById('themeSel').value=S.theme;
+  document.getElementById('presetSel').value=S.preset in PRESETS?S.preset:'custom';
+  document.querySelectorAll('#presetChips button').forEach(b=>b.classList.toggle('on',b.dataset.preset===S.preset));
+  document.querySelectorAll('#selChips input').forEach(el=>{el.checked=S.sel.includes(el.dataset.sc);el.parentElement.classList.toggle('on',el.checked)});
+}
+function setTab(t){
+  S.tab=t;save();
+  document.querySelectorAll('.tab').forEach(e=>e.classList.toggle('on',e.id==='tab-'+t));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  if(t==='dados')renderDados();
+  syncInputs();refresh();window.scrollTo({top:0});
+}
+function applyTheme(){const t=S.theme;if(t==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t)}
+function buildStatic(){
+  document.getElementById('tabs').innerHTML=TABS.map(t=>`<button data-tab="${t[0]}">${t[1]}</button>`).join('');
+  document.getElementById('presetSel').innerHTML=Object.entries(PRESETS).map(([k,p])=>`<option value="${k}">${p.nome}</option>`).join('')+'<option value="custom">Personalizada</option>';
+  document.getElementById('presetChips').innerHTML=Object.entries(PRESETS).map(([k,p])=>`<button data-preset="${k}">${p.nome}</button>`).join('');
+  document.getElementById('weightSliders').innerHTML=CRIT.map(k=>`<div class="sl"${critTip(k)}><label style="cursor:help">${esc(k.nome)}</label><input type="range" data-w="${k.k}" min="0" max="40" step="1"><span class="o" id="wo-${k.k}"></span></div>`).join('');
+  const F=[['disp','Entrega imediata'],['memoria','Memória dos bancos'],['estepe','Estepe'],['awd','Tração integral'],['hud','Head-up display'],['bsd','Ponto cego'],['flex','Flex + IPVA reduzido']];
+  document.getElementById('fltChips').innerHTML=F.map(f=>`<label class="chip"><input type="checkbox" data-fc="${f[0]}">${f[1]}</label>`).join('');
+  document.getElementById('selChips').innerHTML=BASE.map(c=>`<label class="chip"><input type="checkbox" data-sc="${c.id}">${esc(c.curto)}</label>`).join('');
+}
+
+/* ---------- eventos ---------- */
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-tab]');if(t){setTab(t.dataset.tab);return}
+  const o=e.target.closest('[data-open]');if(o){openCar(o.dataset.open);return}
+  const p=e.target.closest('[data-preset]');if(p){S.preset=p.dataset.preset;S.w={...PRESETS[S.preset].w};save();syncInputs();refresh();return}
+  if(e.target.id==='dlgClose')document.getElementById('dlg').close();
+  if(e.target.id==='dlg')document.getElementById('dlg').close();
+  if(e.target.id==='resetScores'){S.sc={};save();refresh()}
+  if(e.target.id==='resetCars'){S.car={};save();renderDados();refresh()}
+  if(e.target.id==='resetAll'){if(confirm('Restaurar todas as premissas, pesos, notas e filtros?')){const tab=S.tab;S=fresh();S.tab=tab;save();applyTheme();buildStatic();setTab(tab)}}
+});
+function onInput(e){
+  const el=e.target;
+  if(el.dataset.g!=null){const k=el.dataset.g;S.g[k]=el.type==='checkbox'?el.checked:(el.tagName==='SELECT'&&isNaN(+el.value)?el.value:+el.value);if(el.tagName==='SELECT'&&(k==='pagto'||k==='trocaModo'))S.g[k]=el.value;save();syncInputs();refresh()}
+  else if(el.dataset.w!=null){S.w[el.dataset.w]=+el.value;S.preset='custom';document.getElementById('wo-'+el.dataset.w).textContent=el.value;save();syncInputs();refresh()}
+  else if(el.dataset.f!=null){S.flt[el.dataset.f]=+el.value;save();refresh()}
+  else if(el.dataset.fc!=null){S.flt[el.dataset.fc]=el.checked;save();syncInputs();refresh()}
+  else if(el.dataset.sc!=null){const id=el.dataset.sc;S.sel=el.checked?[...new Set([...S.sel,id])]:S.sel.filter(x=>x!==id);S.sel=BASE.map(c=>c.id).filter(x=>S.sel.includes(x));save();syncInputs();refresh()}
+  else if(el.dataset.s!=null&&el.type==='number'){
+    const [id,k]=el.dataset.s.split('|');S.sc[id]=S.sc[id]||{};
+    if(el.value==='')delete S.sc[id][k];else S.sc[id][k]=clamp(+el.value,0,10);save();refresh('matrix');
+    const cc=C.res.find(r=>r.c.id===id);el.style.background=`color-mix(in srgb,var(--heat-hi) ${clamp(cc.sc[k],0,10)*10}%,var(--heat-lo))`;el.style.outline=isOverride(cc,id,k)?'2px solid var(--s2)':'';
+    el.closest('tr').lastElementChild.innerHTML=`<b>${nf1.format(cc.overall)}</b>`;
+  }
+  else if(el.dataset.c!=null){
+    const [id,k]=el.dataset.c.split('|');const cur=getCar(id);const o=S.car[id]=S.car[id]||{};
+    let v=el.type==='checkbox'?el.checked:+el.value;
+    if(k==='ent'){o.parc={...cur.parc,ent:clamp(v/100,0,1)}}
+    else if(k==='n'){o.parc={...cur.parc,n:Math.max(1,Math.round(v))}}
+    else if(k==='d1'||k==='d'){o[k]=clamp(v/100,0,.9)}
+    else o[k]=v;
+    save();refresh();
+    if(k==='descExtra'){const again=document.querySelector(`[data-c="${el.dataset.c}"]`);if(again){again.focus();again.select&&again.select()}}
+  }
+  else if(el.dataset.todo!=null){S.todo[el.dataset.todo]=el.checked;save();renderTodos()}
+  else if(el.id==='presetSel'){if(el.value!=='custom'){S.preset=el.value;S.w={...PRESETS[el.value].w};save();syncInputs();refresh()}}
+  else if(el.id==='sortSel'){S.sort=el.value;save();refresh()}
+  else if(el.id==='themeSel'){S.theme=el.value;save();applyTheme()}
+}
+document.addEventListener('input',e=>{if(e.target.matches('input[type=range]'))onInput(e)});
+document.addEventListener('change',e=>{if(!e.target.matches('input[type=range]'))onInput(e)});
+
+/* tooltip global */
+const tip=document.getElementById('tip');
+document.addEventListener('pointermove',e=>{
+  const t=e.target.closest&&e.target.closest('[data-tip]');
+  if(!t){tip.style.display='none';return}
+  tip.innerHTML=t.dataset.tip;tip.style.display='block';
+  const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;
+  if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;
+  tip.style.left=x+'px';tip.style.top=y+'px';
+});
+document.addEventListener('pointerleave',()=>tip.style.display='none');
+
+/* init */
+buildStatic();applyTheme();
+document.querySelectorAll('[data-g]').forEach(()=>{});
+setTab(TABS.some(t=>t[0]===S.tab)?S.tab:'visao');
+</script>
+</body>
+</html>
