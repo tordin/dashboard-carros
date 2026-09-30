@@ -570,7 +570,7 @@ const DEF_SC={
  cs55:{conforto:9,design:9,tech:6,marca:4,dirigir:7.5,motor:6.5,mala:7.5,espaco:6}
 };
 const KEY='carros-dash-v1';
-const fresh=()=>({ver:2,g:{...DEF_G},car:{},sc:JSON.parse(JSON.stringify(DEF_SC)),w:{...PRESETS.meu.w},preset:'meu',flt:{disp:false,memoria:false,estepe:false,awd:false,hud:false,bsd:false,flex:false,ang:13},sel:BASE.map(c=>c.id),tab:'visao',todo:{},sort:'overall',theme:'auto'});
+const fresh=()=>({ver:2,g:{...DEF_G},car:{},sc:JSON.parse(JSON.stringify(DEF_SC)),w:{...PRESETS.meu.w},preset:'meu',flt:{disp:false,memoria:false,estepe:false,awd:false,hud:false,bsd:false,flex:false,ang:13},sel:['h6','ex5'],tab:'visao',todo:{},sort:'overall',theme:'auto'});
 let S=fresh();
 try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o.g&&o.g.mixEsp==null)o.g.mixNotas=DEF_G.mixNotas;
   if(o.ver!==2){delete o.w;delete o.preset;Object.values(o.sc||{}).forEach(m=>['seguranca','pratico','espaco'].forEach(k=>delete m[k]))} // domínios reorganizados: descarta pesos e notas editadas dos que mudaram de sentido
@@ -578,7 +578,7 @@ try{const raw=localStorage.getItem(KEY);if(raw){const o=JSON.parse(raw);if(o.g&&
 if(S.sort==='mensal'||S.sort==='total')S.sort='hold';
 const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
 const getCar=id=>{const b=BASE.find(c=>c.id===id);return (()=>{const c=Object.assign({testado:true,esperaSem:0},b,S.car[id]||{});c.disp=!(c.esperaSem>0);return c})()};
-const CARS=()=>BASE.map(b=>getCar(b.id));
+const CARS=()=>BASE.filter(b=>!S.sel.length||S.sel.includes(b.id)).map(b=>getCar(b.id));
 
 /* =====================================================================
    FORMATAÇÃO
